@@ -18,6 +18,9 @@
 .modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;z-index:50}.modal.open{display:flex}.sheet{width:100%;max-width:520px;margin:auto;background:#171a1f;border:1px solid #343840;border-radius:26px 26px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}.sheetHead{display:flex;justify-content:space-between;align-items:center}.sheet h2{margin:0;font-size:18px}.close{border:0;background:none;color:var(--pink2);font-size:13px}.choiceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.choice{border:1px solid #30343b;background:#111419;color:#fff;border-radius:14px;padding:12px 6px;min-height:58px}.choice.sel{border-color:var(--pink);background:#3b1e2d}.note{width:100%;min-height:72px;border:1px solid #30343b;background:#111419;color:#fff;border-radius:15px;padding:11px;resize:vertical}.save{width:100%;border:0;background:linear-gradient(90deg,#f06aa9,#ff8ec1);color:#160d12;border-radius:23px;padding:13px;font-weight:700;margin-top:10px}.meds{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.med{border:1px solid #30343b;background:#111419;color:#ddd;border-radius:13px;padding:9px 12px}.med.sel{border-color:var(--pink);background:#3b1e2d}.duration{width:100%;border:1px solid #30343b;background:#111419;color:#fff;border-radius:13px;padding:11px;margin:5px 0 10px}
 .loading{opacity:.7}
 @media(min-width:700px){.bottom{position:sticky;top:10px;border:1px solid var(--line);border-radius:18px;margin-top:10px;bottom:auto}.app{padding-bottom:30px}}
+
+/* Refinements */
+.periodSummary{margin:10px 0}.periodSummary h3{margin:0 0 10px;font-size:15px}.summaryStats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.summaryStat{background:#111419;border:1px solid #292d34;border-radius:14px;padding:11px}.summaryStat b{display:block;font-size:18px}.summaryStat span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.daySummary{margin-top:10px}.detailBtn{width:100%;text-align:left;border:1px solid #30343b;background:#15181d;color:#fff;border-radius:15px;padding:12px;margin-top:8px}.quick button{min-height:92px}.quick .noneBtn{grid-column:1/-1;min-height:42px;text-align:center;color:var(--pink2);border-color:#6d3852}.eventRow{cursor:pointer}.analyticsDrill{border:1px solid #30343b;background:#15181d;color:#fff;border-radius:15px;padding:12px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left}.historySource{margin-bottom:10px}.historySource b{color:#fff}.loadNote{color:var(--muted);font-size:11px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -25,24 +28,22 @@
 <header class="top"><div><div class="eyebrow">Личный трекер · Google Health + WHOOP history</div><h1 id="title">Сегодня</h1></div><div class="cat">🐈‍⬛</div></header>
 
 <main id="today" class="page active">
-  <section class="hero"><div class="hello">Доброе утро,<strong>Настя!</strong></div><div class="meta" id="todayDate">Загружаем данные…</div><div style="margin-top:10px"><span class="badge" id="liveBadge">Google Health</span> <span class="badge" id="liveStatus">подключение…</span></div></section>
+  <section class="card" style="margin-top:7px"><div class="meta" id="todayDate">Загружаем данные…</div><div style="margin-top:9px"><span class="badge" id="liveBadge">Google Health</span> <span class="badge" id="liveStatus">подключение…</span></div></section>
 
   <div class="grid">
     <section class="card metric"><div class="label">🌙 Сон</div><div class="value" id="sleepVal">—</div><div class="sub" id="sleepSub">—</div></section>
+    <section class="card metric"><div class="label">Оценка сна</div><div class="value accent" id="sleepScoreVal">—</div><div class="sub" id="sleepScoreSub">нет оценки в Google Health</div></section>
     <section class="card metric"><div class="label">🌿 Готовность</div><div class="value accent" id="readinessVal">—</div><div class="sub" id="readinessSub">Google Health</div></section>
-    <section class="card metric"><div class="label">💗 HRV</div><div class="value" id="hrvVal">— <span class="unit">мс</span></div><div class="sub">дневное значение</div></section>
-    <section class="card metric"><div class="label">♥ Пульс покоя</div><div class="value" id="rhrVal">— <span class="unit">уд/мин</span></div><div class="sub">Google Health</div></section>
     <section class="card metric"><div class="label">👣 Шаги</div><div class="value" id="stepsVal">—</div><div class="sub">за день</div></section>
-    <section class="card metric"><div class="label">🫁 Дыхание</div><div class="value" id="respVal">— <span class="unit">/мин</span></div><div class="sub">среднее</div></section>
   </div>
 
-  <div class="sectionTitle"><h2>Нагрузка</h2><span class="muted">Google Health</span></div>
+  <div class="sectionTitle"><h2>Активность</h2><span class="muted">Google Health</span></div>
   <section class="card load"><div class="loadTop"><div><div class="loadMain" id="loadHeadline">—</div><div class="sub">собственная Healthy Strain появится после накопления данных</div></div><span class="badge">не WHOOP Strain</span></div><div class="loadBar"><i id="loadBar"></i></div><div class="loadGrid">
     <div class="loadItem"><div class="k">Activity Level</div><div class="v" id="activityLevelVal">—</div><div class="sub" id="activityLevelSub">—</div></div>
     <div class="loadItem"><div class="k">HR-зоны</div><div class="v" id="hrZonesVal">—</div><div class="sub" id="hrZonesSub">—</div></div>
     <div class="loadItem"><div class="k">Тренировки</div><div class="v" id="workoutTimeVal">—</div><div class="sub" id="workoutTimeSub">—</div></div>
     <div class="loadItem"><div class="k">Шаги</div><div class="v" id="loadStepsVal">—</div><div class="sub">двигательная активность</div></div>
-  </div><div id="workouts" class="sub" style="margin-top:12px">Тренировки загружаются автоматически.</div></section>
+  </div><div id="workouts" class="sub" style="margin-top:12px">Тренировки загружаются автоматически.</div><div class="loadNote">Уровень активности — классификация Google Health, а не аналог Strain. Он может быть высоким даже без тренировки, если было много движения.</div></section>
 
   <div class="sectionTitle"><h2>Что было вчера?</h2><span class="muted">быстрая отметка</span></div>
   <section class="quick">
@@ -50,14 +51,15 @@
     <button onclick="openLog('caffeine')"><span class="qicon">☕</span><b>Кофеин после обеда</b><span>сколько чашек</span></button>
     <button onclick="openLog('anxiety')"><span class="qicon">🌸</span><b>Тревожка</b><span>0–2 + длительность</span></button>
     <button onclick="openLog('migraine')"><span class="qicon">🤕</span><b>Мигрень</b><span>0–2 + лекарства</span></button>
+    <button class="noneBtn" onclick="markNone('migraine')">Не было мигрени</button>
   </section>
-  <section class="card encourage"><h2>Настя, держись ✦</h2><p>Данные здесь не для оценки тебя. Мы собираем их, чтобы со временем лучше понимать твои закономерности.</p></section>
 </main>
 
 <main id="journal" class="page">
   <div class="toolbar"><h2>Журнал</h2><button class="more">•••</button></div>
-  <div class="switch"><button class="active">Месяц</button><button>Неделя</button><button>Год</button></div>
-  <section class="card"><div class="month"><button class="arrow" onclick="changeMonth(-1)">‹</button><strong id="monthTitle">—</strong><button class="arrow" onclick="changeMonth(1)">›</button></div><div class="calendar" id="calendar"></div><div class="legend"><span><i class="dot mig"></i> Мигрень</span><span><i class="dot anx"></i> Тревожность</span><span><i class="dot alc"></i> Алкоголь</span><span><i class="dot caf"></i> Кофеин</span><span><i class="dot cycle"></i> Цикл</span></div></section>
+  <div class="switch" id="journalSwitch"><button class="active" onclick="setJournalView('month',this)">Месяц</button><button onclick="setJournalView('week',this)">Неделя</button><button onclick="setJournalView('year',this)">Год</button></div>
+  <section id="journalSummary" class="card periodSummary"></section>
+  <section class="card" id="journalCalendar"><div class="month"><button class="arrow" onclick="changeMonth(-1)">‹</button><strong id="monthTitle">—</strong><button class="arrow" onclick="changeMonth(1)">›</button></div><div class="calendar" id="calendar"></div><div class="legend"><span><i class="dot mig"></i> Мигрень</span><span><i class="dot anx"></i> Тревожность</span><span><i class="dot alc"></i> Алкоголь</span><span><i class="dot caf"></i> Кофеин</span><span><i class="dot cycle"></i> Цикл</span></div></section>
   <section class="card" id="selectedDay"><div class="empty">Выбери день в календаре.</div></section>
   <button class="addNote" onclick="addNote()">＋ Добавить заметку</button>
 </main>
@@ -70,7 +72,7 @@
 
 <main id="history" class="page">
   <div class="toolbar"><h2>История</h2><span class="badge">WHOOP</span></div>
-  <div class="historySource">Исторические данные WHOOP живут отдельно от текущих Google Health данных. Здесь не смешиваем источники.</div>
+  <div class="historySource"><b>Зачем этот раздел:</b> здесь хранится только архив WHOOP — Recovery, Day Strain, HRV и сон из выгрузки. Google Health сюда не попадает и с WHOOP не смешивается.</div>
   <section id="historyList"></section>
 </main>
 </div>
@@ -97,19 +99,178 @@ function latest(){return days()[0]||null}
 function fmtDate(ds){return new Date(ds+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
 function minsText(m){if(m==null)return '—';return `${Math.floor(m/60)} ч ${Math.round(m%60)} мин`}
 function shortMins(m){if(m==null)return '—';return `${Math.floor(m/60)}:${String(Math.round(m%60)).padStart(2,'0')}`}
-function renderToday(){const d=latest();if(!d){document.getElementById('todayDate').textContent='Нет данных Google Health';return}document.getElementById('todayDate').textContent=fmtDate(d.date);document.getElementById('sleepVal').textContent=minsText(d.sleep?.durationMin);document.getElementById('sleepSub').textContent=d.sleep?`Deep ${Math.round(d.sleep.deepMin||0)} · REM ${Math.round(d.sleep.remMin||0)} мин`:'нет данных';document.getElementById('readinessVal').textContent=d.readiness!=null?Math.round(d.readiness):'—';document.getElementById('readinessSub').textContent=d.readiness!=null?'Google Health':'нет показателя в текущем источнике';document.getElementById('hrvVal').innerHTML=(d.hrv!=null?Math.round(d.hrv):'—')+' <span class="unit">мс</span>';document.getElementById('rhrVal').innerHTML=(d.rhr!=null?Math.round(d.rhr):'—')+' <span class="unit">уд/мин</span>';document.getElementById('stepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';document.getElementById('respVal').innerHTML=(d.respiratoryRate!=null?Number(d.respiratoryRate).toFixed(1):'—')+' <span class="unit">/мин</span>';
-const ws=d.workouts||[],levels=d.activityLevel||[],lm={SEDENTARY:0,LIGHTLY_ACTIVE:0,MODERATELY_ACTIVE:0,VERY_ACTIVE:0};levels.forEach(x=>{if(lm[x.type]!=null)lm[x.type]+=Number(x.durationMin||0)});const order=['VERY_ACTIVE','MODERATELY_ACTIVE','LIGHTLY_ACTIVE','SEDENTARY'],dominant=order.find(x=>lm[x]>0);const names={SEDENTARY:'Sedentary',LIGHTLY_ACTIVE:'Lightly Active',MODERATELY_ACTIVE:'Moderately Active',VERY_ACTIVE:'Very Active'};const activeMin=lm.LIGHTLY_ACTIVE+lm.MODERATELY_ACTIVE+lm.VERY_ACTIVE;document.getElementById('activityLevelVal').textContent=dominant?names[dominant]:'—';document.getElementById('activityLevelSub').textContent=levels.length?`${Math.round(activeMin)} мин активных`:'нет данных';const zones=d.timeInHeartRateZone||[],zt=zones.reduce((a,x)=>a+Number(x.durationMin||0),0);document.getElementById('hrZonesVal').textContent=zt?`${Math.round(zt)} мин`:'—';document.getElementById('hrZonesSub').textContent=zones.length?zones.map(x=>`${x.zone||''} ${Math.round(x.durationMin||0)}`).join(' · '):'нет данных';const wt=ws.reduce((a,w)=>a+Number(w.durationMin||0),0);document.getElementById('workoutTimeVal').textContent=wt?`${Math.round(wt)} мин`:'—';document.getElementById('workoutTimeSub').textContent=ws.length?`${ws.length} ${ws.length===1?'тренировка':'тренировки'}`:'нет тренировок';document.getElementById('loadStepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';document.getElementById('loadHeadline').textContent=dominant?names[dominant]:'Нет данных';const score=Math.min(100,Math.round((activeMin/180)*70+(zt/120)*30));document.getElementById('loadBar').style.width=(isFinite(score)?score:0)+'%';document.getElementById('workouts').innerHTML=ws.length?ws.map(w=>`🏃 ${esc(w.name||prettyType(w.type))}${w.durationMin!=null?' · '+Math.round(w.durationMin)+' мин':''}${w.calories!=null?' · '+Math.round(w.calories)+' ккал':''}`).join('<br>'):'Тренировок за этот день нет.'}
-function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function journalMap(){const m={};for(const r of WHOOP?.journal||[]){if(!r.answeredYes)continue;(m[r.date]??=[]).push(r.category)}for(const x of manual){(m[x.date]??=[]).push(x.category)}return m}
-function renderCalendar(){const root=document.getElementById('calendar');root.innerHTML='';['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(x=>{const e=document.createElement('div');e.className='dow';e.textContent=x;root.appendChild(e)});const y=viewDate.getFullYear(),mo=viewDate.getMonth(),first=new Date(y,mo,1),last=new Date(y,mo+1,0),offset=(first.getDay()+6)%7,jm=journalMap();document.getElementById('monthTitle').textContent=first.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='day muted';root.appendChild(e)}for(let n=1;n<=last.getDate();n++){const ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`,e=document.createElement('button');e.className='day';if(ds===new Date().toISOString().slice(0,10))e.classList.add('today');e.innerHTML=`<span class="daynum">${n}</span>`;e.onclick=()=>selectDay(ds);const cats=[...(jm[ds]||[])];if(cats.length){const dots=document.createElement('div');dots.className='dots';[...new Set(cats)].forEach(c=>{const q=document.createElement('i');q.className='dot '+({migraine:'mig',anxiety:'anx',alcohol:'alc',caffeine:'caf'}[c]||'');dots.appendChild(q)});e.appendChild(dots)}root.appendChild(e)}}
-function selectDay(ds){const man=manual.filter(x=>x.date===ds),cats=journalMap()[ds]||[],root=document.getElementById('selectedDay');let rows='';for(const c of [...new Set(cats)]){const found=man.filter(x=>x.category===c);let val=found.length?found.map(x=>x.value!=null?x.value:'').join(', '):'отмечено в истории';rows+=`<div class="eventRow"><div class="eventIcon">${icons[c]||'•'}</div><div class="eventText"><b>${labels[c]||c}</b></div><div class="eventValue">${esc(val)}</div></div>`}if(!rows)rows='<div class="empty">Событий нет.</div>';root.innerHTML=`<div class="selectedHead"><h3 style="margin:0">${fmtDate(ds)}</h3><span class="badge">${cats.length} событий</span></div>${rows}`}
-function changeMonth(n){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+n,1);renderCalendar()}
-function analyticsManual(type,period){const end=new Date();const start=new Date(end.getTime()-period*86400000);return manual.filter(x=>x.category===type&&new Date(x.date+'T23:59:59')>=start)}
-function renderAnalytics(){const root=document.getElementById('analyticsContent'),period=analyticsDays,arr=days().slice(0,period),h=arr.filter(x=>x.hrv!=null),sleep=arr.filter(x=>x.sleep?.durationMin!=null),types=['migraine','anxiety','alcohol','caffeine'],names={migraine:'Мигрень',anxiety:'Тревожность',alcohol:'Алкоголь',caffeine:'Кофеин после обеда'};let stats='';types.forEach(t=>{const count=analyticsManual(t,period).length;stats+=`<div class="statRow"><div class="statLeft"><span class="statIcon">${icons[t]}</span><span class="statName">${names[t]}</span></div><div style="display:flex;align-items:center;gap:9px"><div class="miniBar"><i style="width:${Math.min(100,count*16)}%"></i></div><span class="statValue">${count} дн.</span></div></div>`});const sleepAvg=sleep.length?sleep.reduce((a,x)=>a+x.sleep.durationMin,0)/sleep.length:null;root.innerHTML=`<section class="insight"><span class="star">✦</span><strong>Пока без поспешных выводов</strong><p>Аналитика показывает факты и накопление данных. Причинные связи будем показывать только при достаточном количестве наблюдений.</p></section><section class="card analysisCard"><h3>Частота событий · ${period} дней</h3>${stats}</section><section class="grid"><section class="card analysisCard"><div class="sub">Средний сон</div><div class="metric" style="min-height:0"><div class="value">${sleepAvg!=null?minsText(sleepAvg):'—'}</div><div class="sub">${sleep.length} дней с данными</div></div></section><section class="card analysisCard"><div class="sub">HRV</div><div class="metric" style="min-height:0"><div class="value">${h.length?Math.round(h.reduce((a,x)=>a+x.hrv,0)/h.length):'—'} <span class="unit">мс</span></div><div class="sub">${h.length} дней с данными</div></div></section></section><section class="card analysisCard"><h3>Сон по дням</h3>${sleep.length?`<div class="chart">${sleep.slice(0,14).reverse().map(x=>`<i class="bar" style="height:${Math.max(8,Math.min(100,x.sleep.durationMin/600*100))}%" title="${x.date}"></i>`).join('')}</div><div class="days"><span>раньше</span><span>сейчас</span></div>`:'<div class="empty">Недостаточно данных для графика.</div>'}</section><div class="notice">Доступно ${arr.length} дней Google Health. Для раздела «Взаимосвязи» сначала накопим полноценную историю.</div>`}
+function renderToday(){
+const d=latest();
+if(!d){document.getElementById('todayDate').textContent='Нет данных Google Health';return}
+document.getElementById('todayDate').textContent=fmtDate(d.date);
+document.getElementById('sleepVal').textContent=minsText(d.sleep?.durationMin);
+document.getElementById('sleepSub').textContent=d.sleep?`Deep ${Math.round(d.sleep.deepMin||0)} · REM ${Math.round(d.sleep.remMin||0)} мин`:'нет данных';
+const score=d.sleepScore ?? d.sleep?.score ?? null;
+document.getElementById('sleepScoreVal').textContent=score!=null?Math.round(score):'—';
+document.getElementById('sleepScoreSub').textContent=score!=null?'Google Health':'в текущем источнике нет оценки сна';
+document.getElementById('readinessVal').textContent=d.readiness!=null?Math.round(d.readiness):'—';
+document.getElementById('readinessSub').textContent=d.readiness!=null?'Google Health':'нет показателя в текущем источнике';
+document.getElementById('stepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';
+
+const ws=d.workouts||[],levels=d.activityLevel||[],lm={SEDENTARY:0,LIGHTLY_ACTIVE:0,MODERATELY_ACTIVE:0,VERY_ACTIVE:0};
+levels.forEach(x=>{if(lm[x.type]!=null)lm[x.type]+=Number(x.durationMin||0)});
+const order=['VERY_ACTIVE','MODERATELY_ACTIVE','LIGHTLY_ACTIVE','SEDENTARY'],dominant=order.find(x=>lm[x]>0);
+const names={SEDENTARY:'Малоподвижно',LIGHTLY_ACTIVE:'Лёгкая активность',MODERATELY_ACTIVE:'Умеренная активность',VERY_ACTIVE:'Высокая активность'};
+const activeMin=lm.LIGHTLY_ACTIVE+lm.MODERATELY_ACTIVE+lm.VERY_ACTIVE;
+document.getElementById('activityLevelVal').textContent=dominant?names[dominant]:'—';
+document.getElementById('activityLevelSub').textContent=levels.length?`${Math.round(activeMin)} мин активных`:'нет данных';
+const zones=d.timeInHeartRateZone||[],zt=zones.reduce((a,x)=>a+Number(x.durationMin||0),0);
+document.getElementById('hrZonesVal').textContent=zt?`${Math.round(zt)} мин`:'—';
+document.getElementById('hrZonesSub').textContent=zones.length?zones.map(x=>`${x.zone||''} ${Math.round(x.durationMin||0)}`).join(' · '):'нет данных';
+const wt=ws.reduce((a,w)=>a+Number(w.durationMin||0),0);
+document.getElementById('workoutTimeVal').textContent=wt?`${Math.round(wt)} мин`:'—';
+document.getElementById('workoutTimeSub').textContent=ws.length?`${ws.length} ${ws.length===1?'тренировка':'тренировки'}`:'нет тренировок';
+document.getElementById('loadStepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';
+document.getElementById('loadHeadline').textContent=dominant?names[dominant]:'Нет данных';
+const scoreLoad=Math.min(100,Math.round((activeMin/180)*70+(zt/120)*30));
+document.getElementById('loadBar').style.width=(isFinite(scoreLoad)?scoreLoad:0)+'%';
+document.getElementById('workouts').innerHTML=ws.length?ws.map(w=>`🏃 ${esc(w.name||prettyType(w.type))}${w.durationMin!=null?' · '+Math.round(w.durationMin)+' мин':''}${w.calories!=null?' · '+Math.round(w.calories)+' ккал':''}`).join('<br>'):'Тренировок за этот день нет.'
+}
+function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function journalMap(){
+const m={};
+for(const r of WHOOP?.journal||[]){if(!r.answeredYes)continue;(m[r.date]??=[]).push(r.category)}
+for(const x of manual){if(x.category==='none')continue;(m[x.date]??=[]).push(x.category)}
+return m
+}
+function allEventsForDate(ds){
+return [...(WHOOP?.journal||[]).filter(r=>r.answeredYes&&r.date===ds).map(r=>({category:r.category,value:null,detail:'Отмечено в WHOOP'})),
+...(manual.filter(x=>x.date===ds&&x.category!=='none'))]
+}
+function rangeDates(view){
+const now=new Date();now.setHours(12,0,0,0);
+let start,end;
+if(view==='week'){start=new Date(now);start.setDate(now.getDate()-6);end=now}
+else if(view==='year'){start=new Date(now.getFullYear(),0,1,12);end=now}
+else{start=new Date(viewDate.getFullYear(),viewDate.getMonth(),1,12);end=new Date(viewDate.getFullYear(),viewDate.getMonth()+1,0,12)}
+return {start,end}
+}
+function periodEvents(view){
+const {start,end}=rangeDates(view),out=[];
+const jm=journalMap();
+for(const [ds,cats] of Object.entries(jm)){
+const d=new Date(ds+'T12:00:00');
+if(d>=start&&d<=end)for(const c of cats)out.push({date:ds,category:c});
+}
+return out
+}
+function periodSummary(view){
+const ev=periodEvents(view), counts={migraine:0,anxiety:0,alcohol:0,caffeine:0};
+ev.forEach(x=>{if(counts[x.category]!=null)counts[x.category]++});
+const {start,end}=rangeDates(view),daysCount=Math.round((end-start)/86400000)+1;
+const title=view==='week'?'Последние 7 дней':view==='year'?`С начала ${end.getFullYear()} года`:`${start.toLocaleDateString('ru-RU',{month:'long',year:'numeric'})}`;
+return `<h3>${title}</h3><div class="summaryStats">
+<div class="summaryStat"><b>${counts.migraine}</b><span>дней с мигренью</span></div>
+<div class="summaryStat"><b>${counts.anxiety}</b><span>дней с тревожностью</span></div>
+<div class="summaryStat"><b>${counts.alcohol}</b><span>дней с алкоголем</span></div>
+<div class="summaryStat"><b>${counts.caffeine}</b><span>дней с кофеином после обеда</span></div>
+</div><div class="sub" style="margin-top:9px">${daysCount} дней в периоде · отмечено событий: ${ev.length}</div>`
+}
+let journalView='month';
+function setJournalView(view,btn){
+journalView=view;
+document.querySelectorAll('#journalSwitch button').forEach(x=>x.classList.remove('active'));
+btn.classList.add('active');
+document.getElementById('journalSummary').innerHTML=periodSummary(view);
+document.getElementById('journalCalendar').style.display=view==='month'?'block':'none';
+renderJournalPeriodList(view);
+if(view==='month')renderCalendar();
+}
+function renderJournalPeriodList(view){
+if(view==='month'){selectDay(new Date().toISOString().slice(0,10));return}
+const root=document.getElementById('selectedDay'),ev=periodEvents(view),by={};
+ev.forEach(x=>(by[x.date]??=[]).push(x.category));
+const rows=Object.entries(by).sort((a,b)=>b[0].localeCompare(a[0])).map(([ds,cats])=>`<button class="detailBtn" onclick="selectDay('${ds}')"><b>${fmtDate(ds)}</b><div class="sub">${[...new Set(cats)].map(c=>labels[c]).join(', ')}</div></button>`).join('');
+root.innerHTML=rows||'<div class="empty">В этом периоде пока нет отмеченных событий.</div>';
+}
+function renderCalendar(){
+const root=document.getElementById('calendar');root.innerHTML='';
+['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(x=>{const e=document.createElement('div');e.className='dow';e.textContent=x;root.appendChild(e)});
+const y=viewDate.getFullYear(),mo=viewDate.getMonth(),first=new Date(y,mo,1),last=new Date(y,mo+1,0),offset=(first.getDay()+6)%7,jm=journalMap();
+document.getElementById('monthTitle').textContent=first.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
+for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='day muted';root.appendChild(e)}
+for(let n=1;n<=last.getDate();n++){
+const ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`,e=document.createElement('button');e.className='day';
+if(ds===new Date().toISOString().slice(0,10))e.classList.add('today');
+e.innerHTML=`<span class="daynum">${n}</span>`;e.onclick=()=>selectDay(ds);
+const cats=[...(jm[ds]||[])];
+if(cats.length){const dots=document.createElement('div');dots.className='dots';[...new Set(cats)].forEach(c=>{const q=document.createElement('i');q.className='dot '+({migraine:'mig',anxiety:'anx',alcohol:'alc',caffeine:'caf'}[c]||'');dots.appendChild(q)});e.appendChild(dots)}
+root.appendChild(e)
+}
+}
+function selectDay(ds){
+const events=allEventsForDate(ds),root=document.getElementById('selectedDay');
+let rows='';
+for(const e of events){
+const c=e.category;
+let val='';
+if(c==='alcohol')val=e.value!=null?`${e.value} бок.`:'отмечено';
+else if(c==='caffeine')val=e.value!=null?`${e.value} чаш.`:'отмечено';
+else if(c==='anxiety')val=e.value!=null?`уровень ${e.value}`:'отмечено';
+else if(c==='migraine')val=e.value!=null?`уровень ${e.value}`:'отмечено';
+if(e.detail)val+=(val?' · ':'')+e.detail;
+rows+=`<button class="detailBtn" onclick="openAnalyticsEventForDay('${c}','${ds}')"><div style="display:flex;justify-content:space-between;gap:10px"><b>${labels[c]||c}</b><span class="eventValue">${esc(val)}</span></div></button>`
+}
+if(!rows)rows='<div class="empty">Событий нет.</div>';
+root.innerHTML=`<div class="selectedHead"><h3 style="margin:0">${fmtDate(ds)}</h3><span class="badge">${events.length} событий</span></div><div class="daySummary sub">${events.length?'Короткая сводка по отмеченным пунктам за день.':'За этот день ничего не отмечено.'}</div>${rows}`
+}
+function openAnalyticsEventForDay(type,ds){
+const e=allEventsForDate(ds).find(x=>x.category===type);
+document.getElementById('modalTitle').textContent=labels[type];
+document.getElementById('modalBody').innerHTML=`<div class="sub">${fmtDate(ds)}</div><section class="card"><b>${labels[type]}</b><div class="sub">${e?eventDetailText(e):'Отмечено'}</div></section><button class="save" onclick="closeLog()">Закрыть</button>`;
+document.getElementById('modal').classList.add('open')
+}
+function changeMonth(n){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+n,1);renderCalendar();document.getElementById('journalSummary').innerHTML=periodSummary('month')}
+function analyticsManual(type,period){
+const end=new Date();end.setHours(23,59,59,999);const start=new Date(end.getTime()-(period-1)*86400000);
+return manual.filter(x=>x.category===type&&new Date(x.date+'T23:59:59')>=start)
+}
+function analyticsEvents(type,period){
+const end=new Date();end.setHours(23,59,59,999);const start=new Date(end.getTime()-(period-1)*86400000);
+return [...(WHOOP?.journal||[]).filter(r=>r.answeredYes&&r.category===type&&new Date(r.date+'T12:00:00')>=start).map(r=>({date:r.date,value:null,detail:'Отмечено в WHOOP'})),
+...manual.filter(x=>x.category===type&&new Date(x.date+'T12:00:00')>=start)]
+}
+function renderAnalytics(){
+const root=document.getElementById('analyticsContent'),period=analyticsDays,arr=days().slice(0,period),h=arr.filter(x=>x.hrv!=null),sleep=arr.filter(x=>x.sleep?.durationMin!=null),types=['migraine','anxiety','alcohol','caffeine'],names={migraine:'Мигрень',anxiety:'Тревожность',alcohol:'Алкоголь',caffeine:'Кофеин после обеда'};
+let stats='';
+types.forEach(t=>{
+const events=analyticsEvents(t,period),count=new Set(events.map(x=>x.date)).size;
+stats+=`<button class="analyticsDrill" onclick="openAnalyticsEvent('${t}')"><span><span class="statIcon">${icons[t]}</span> ${names[t]}</span><span>${count} дн. ›</span></button>`
+});
+const sleepAvg=sleep.length?sleep.reduce((a,x)=>a+x.sleep.durationMin,0)/sleep.length:null;
+root.innerHTML=`<section class="insight"><span class="star">✦</span><strong>Пока без поспешных выводов</strong><p>Аналитика показывает факты и накопление данных. Причинные связи будем показывать только при достаточном количестве наблюдений.</p></section><section class="card analysisCard"><h3>Частота событий · ${period} дней</h3>${stats}</section><section class="grid"><section class="card analysisCard"><div class="sub">Средний сон</div><div class="metric" style="min-height:0"><div class="value">${sleepAvg!=null?minsText(sleepAvg):'—'}</div><div class="sub">${sleep.length} дней с данными</div></div></section><section class="card analysisCard"><div class="sub">HRV</div><div class="metric" style="min-height:0"><div class="value">${h.length?Math.round(h.reduce((a,x)=>a+x.hrv,0)/h.length):'—'} <span class="unit">мс</span></div><div class="sub">${h.length} дней с данными</div></section></section><section class="card analysisCard"><h3>Сон по дням</h3>${sleep.length?`<div class="chart">${sleep.slice(0,14).reverse().map(x=>`<i class="bar" style="height:${Math.max(8,Math.min(100,x.sleep.durationMin/600*100))}%" title="${x.date}"></i>`).join('')}</div><div class="days"><span>раньше</span><span>сейчас</span></div>`:'<div class="empty">Недостаточно данных для графика.</div>'}</section><div class="notice">Доступно ${arr.length} дней Google Health.</div>`
+}
 function setPeriod(n,btn){analyticsDays=n;document.querySelectorAll('.period button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAnalytics()}
+function openAnalyticsEvent(type){
+const events=analyticsEvents(type,analyticsDays),root=document.getElementById('modalBody');
+document.getElementById('modalTitle').textContent=labels[type];
+if(!events.length){root.innerHTML='<div class="empty">За выбранный период записей нет.</div><button class="save" onclick="closeLog()">Закрыть</button>'}
+else{
+root.innerHTML=`<div class="sub">Детали за последние ${analyticsDays} дней</div>`+events.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<div class="card" style="margin:8px 0"><b>${fmtDate(e.date)}</b><div class="sub">${eventDetailText(e)}</div></div>`).join('')+'<button class="save" onclick="closeLog()">Закрыть</button>'
+}
+document.getElementById('modal').classList.add('open')
+}
+function eventDetailText(e){
+if(e.category==='alcohol')return e.value!=null?`${e.value} бокала${e.value===1?'':'а'}${e.detail?' · '+e.detail:''}`:(e.detail||'Отмечено в WHOOP');
+if(e.category==='caffeine')return e.value!=null?`${e.value} чашек${e.value===1?'а':''}${e.detail?' · '+e.detail:''}`:(e.detail||'Отмечено в WHOOP');
+if(e.category==='anxiety'||e.category==='migraine')return e.value!=null?`интенсивность ${e.value}${e.detail?' · '+e.detail:''}`:(e.detail||'Отмечено в WHOOP');
+return e.detail||'Отмечено';
+}
+function markNone(type){
+const date=new Date(Date.now()-86400000).toISOString().slice(0,10);
+manual.push({date,category:'none',value:null,detail:`${labels[type]} не было`});
+localStorage.setItem('healthyManual',JSON.stringify(manual));renderCalendar();selectDay(date);renderAnalytics()
+}
 function whoopPhys(){return (WHOOP?.physiologicalCycles||[]).filter(x=>x['Cycle start time']).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}function whoopSleep(){return (WHOOP?.sleeps||[]).filter(x=>x['Asleep duration (min)']!=null).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}
 function renderHistory(){const root=document.getElementById('historyList'),ps=whoopPhys().slice(0,30),ss=whoopSleep();if(!ps.length){root.innerHTML='<div class="empty">WHOOP history пока не загружена.</div>';return}root.innerHTML=ps.map(p=>{const ds=String(p['Cycle start time']).slice(0,10),s=ss.find(x=>String(x['Cycle start time']).slice(0,10)===ds);return `<section class="card historyDay"><div class="date">${fmtDate(ds)}</div><div class="historyGrid"><div class="historyMetric"><div class="k">Recovery</div><div class="v">${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</div></div><div class="historyMetric"><div class="k">HRV</div><div class="v">${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'}</div></div><div class="historyMetric"><div class="k">RHR</div><div class="v">${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'}</div></div><div class="historyMetric"><div class="k">Day Strain</div><div class="v">${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</div></div></div>${s?`<div class="historySleep">Сон ${minsText(s['Asleep duration (min)'])} · Sleep Performance ${s['Sleep performance %']!=null?Math.round(s['Sleep performance %'])+'%':'—'}</div>`:''}</section>`}).join('')}
-function renderAll(){renderToday();renderCalendar();selectDay(new Date().toISOString().slice(0,10));renderAnalytics();renderHistory()}
+function renderAll(){renderToday();renderCalendar();document.getElementById('journalSummary').innerHTML=periodSummary('month');selectDay(new Date().toISOString().slice(0,10));renderAnalytics();renderHistory()}
 function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('title').textContent={today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История'}[id]}
 function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date(Date.now()-86400000).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
 function pick(v,el){currentState.value=v;el.parentNode.querySelectorAll('.choice').forEach(x=>x.classList.remove('sel'));el.classList.add('sel')}function toggleMed(m,el){currentState.meds=currentState.meds||[];currentState.meds=currentState.meds.includes(m)?currentState.meds.filter(x=>x!==m):[...currentState.meds,m];el.classList.toggle('sel')}
