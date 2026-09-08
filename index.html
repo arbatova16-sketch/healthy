@@ -3,279 +3,119 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111114">
+<meta name="theme-color" content="#0b0d10">
 <title>Healthy — личный трекер</title>
 <style>
-:root{--bg:#0d0d10;--card:#17171c;--text:#f7f4f7;--muted:#9995a0;--pink:#ff6fb5;--pink2:#ff9acb;--line:#292932;--green:#8ee0a7;--yellow:#ffd477;--blue:#8fd4ff}
-*{box-sizing:border-box}body{margin:0;background:#08080a;color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
-.app{max-width:520px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 16px calc(84px + env(safe-area-inset-bottom))}
-header{padding:18px 2px 12px;display:flex;justify-content:space-between;align-items:center}
-h1,h2,h3,p{margin:0}h1{font-size:29px;letter-spacing:-.8px}h2{font-size:20px;margin:8px 0 12px}h3{font-size:15px}.sub{color:var(--muted);font-size:13px;margin-top:5px}
-.cat{width:66px;height:66px;border-radius:22px;background:linear-gradient(145deg,#ff9acb,#8b5b88);display:grid;place-items:center;font-size:34px;box-shadow:0 0 32px #ff6fb533}
-.card{background:linear-gradient(145deg,var(--card),#121217);border:1px solid var(--line);border-radius:22px;padding:16px;margin:10px 0;box-shadow:0 12px 30px #0003}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric .value{font-size:27px;font-weight:700;letter-spacing:-.6px;margin-top:7px}.metric .label{color:var(--muted);font-size:12px}.accent{color:var(--pink2)}
-.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.pill{font-size:12px;color:var(--muted);background:#24242b;border-radius:999px;padding:5px 8px}
-.progress{height:7px;background:#292930;border-radius:99px;overflow:hidden;margin-top:10px}.progress>i{display:block;height:100%;background:linear-gradient(90deg,#ff6fb5,#c98bff);border-radius:99px}
-.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick button{border:1px solid var(--line);background:#141419;color:#fff;border-radius:16px;padding:13px;text-align:left}.quick b{display:block;font-size:14px}.quick span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
-.bottom{position:fixed;left:0;right:0;bottom:0;background:#0b0b0eeF;border-top:1px solid var(--line);backdrop-filter:blur(18px);display:flex;justify-content:center;padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}.bottom button{width:25%;border:0;background:none;color:var(--muted);font-size:11px}.bottom button b{display:block;font-size:19px;margin-bottom:2px}.bottom button.active{color:#fff}
-.page{display:none}.page.active{display:block}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.dow{color:var(--muted);font-size:10px;text-align:center;padding:4px}.day{min-height:50px;border:1px solid var(--line);border-radius:10px;padding:5px;background:#121217;font-size:12px;color:#fff;text-align:left}.day.muted{opacity:.35}.day.today{border-color:var(--pink)}.dots{display:flex;gap:2px;margin-top:7px}.dot{width:6px;height:6px;border-radius:50%}.mig{background:#ff6fb5}.anx{background:#c88cff}.alc{background:#ffcf6b}.caf{background:#8fd4ff}
-.notice{border-left:3px solid var(--pink);padding:11px 12px;background:#1a1318;border-radius:10px;color:#ddd}.insight{padding:14px;border-radius:18px;background:linear-gradient(135deg,#251520,#16131a);border:1px solid #5d3148;margin:10px 0}.insight .big{font-size:22px;font-weight:700;margin:5px 0}
-textarea,input{font:inherit}.note{width:100%;min-height:80px;background:#111116;color:#fff;border:1px solid var(--line);border-radius:14px;padding:10px}button{cursor:pointer}
-.modal{position:fixed;inset:0;background:#000a;display:none;align-items:end;z-index:10}.modal.open{display:flex}.sheet{width:100%;max-width:520px;margin:auto;background:#17171c;border:1px solid var(--line);border-radius:24px 24px 0 0;padding:18px}.options{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.opt{border:1px solid var(--line);background:#111116;color:#fff;border-radius:12px;padding:9px 12px}.opt.sel{background:#3a1b2c;border-color:var(--pink)}
-.smallbtn{border:1px solid var(--line);background:#141419;color:#fff;border-radius:12px;padding:9px 12px}.danger{color:#ff9acb}
-.loading{opacity:.65}.hidden{display:none}
-@media(min-width:700px){.bottom{position:sticky;top:0;border:1px solid var(--line);border-radius:20px;margin-top:10px;bottom:auto}.app{padding-bottom:30px}}
+:root{--bg:#0a0c0f;--panel:#14171b;--panel2:#191c21;--line:#292d34;--text:#f7f5f7;--muted:#92969f;--pink:#ff72b6;--pink2:#ff9dca;--pinkSoft:#3a1e2d;--green:#91dfb0;--yellow:#f6cf7b;--blue:#9edcff;--shadow:0 16px 38px #0007}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:radial-gradient(circle at 50% -10%,#251721 0,#0b0d10 38%,#08090b 100%);color:var(--text);font:15px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;min-height:100vh}button,input,textarea{font:inherit}.app{max-width:520px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 16px calc(94px + env(safe-area-inset-bottom))}.top{padding:22px 3px 12px;display:flex;justify-content:space-between;align-items:flex-start}.eyebrow{font-size:10px;letter-spacing:.9px;color:#777b84;text-transform:uppercase;margin-bottom:7px}.top h1{font-size:31px;line-height:1;letter-spacing:-1.1px;margin:0}.cat{width:58px;height:58px;border-radius:20px;background:linear-gradient(145deg,#2a2029,#17171d);border:1px solid #39313a;display:grid;place-items:center;font-size:30px;box-shadow:0 0 28px #ff72b622}.page{display:none}.page.active{display:block}.hero{background:linear-gradient(145deg,#19191f,#121419);border:1px solid var(--line);border-radius:25px;padding:18px;box-shadow:var(--shadow);margin:7px 0 11px}.hero .hello{font-size:27px;letter-spacing:-.7px}.hero .hello strong{display:block;color:var(--pink2);font-size:34px;margin-top:-2px}.hero .meta{color:var(--muted);font-size:12px;margin-top:10px}.badge{display:inline-flex;align-items:center;border:1px solid #343840;background:#1d2025;border-radius:999px;padding:5px 9px;color:#c5c7cc;font-size:10px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.card{background:linear-gradient(145deg,var(--panel2),#111419);border:1px solid var(--line);border-radius:21px;padding:15px;box-shadow:0 10px 28px #0004;margin:10px 0}.metric{min-height:112px}.metric .label{color:#c4c5ca;font-size:12px}.metric .value{font-size:29px;font-weight:700;letter-spacing:-.9px;margin-top:7px}.metric .unit{font-size:13px;font-weight:500;color:#d5d4d8}.sub{color:var(--muted);font-size:11px;margin-top:4px}.accent{color:var(--pink2)}.ring{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;margin-top:7px;background:conic-gradient(var(--pink) 0 72%,#30333a 72%);position:relative}.ring:after{content:"";position:absolute;inset:7px;background:#15181d;border-radius:50%}.ring span{position:relative;z-index:1;font-size:20px;font-weight:700}.sectionTitle{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 7px}.sectionTitle h2{font-size:18px;margin:0;letter-spacing:-.3px}.sectionTitle .muted{font-size:11px;color:var(--muted)}.load{padding:17px}.loadTop{display:flex;justify-content:space-between;align-items:center}.loadMain{font-size:28px;font-weight:700}.loadBar{height:8px;background:#292d33;border-radius:99px;overflow:hidden;margin:12px 0}.loadBar i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--pink),#c38dff);border-radius:99px}.loadGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}.loadItem .k{font-size:11px;color:var(--muted)}.loadItem .v{font-size:18px;font-weight:650;margin-top:2px}.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick button{min-height:78px;border:1px solid #30343b;background:#15181d;color:#fff;border-radius:17px;padding:12px;text-align:left}.quick b{display:block;font-size:13px;margin-top:5px}.quick span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.qicon{font-size:22px}.encourage{background:linear-gradient(135deg,#271923,#17151b);border-color:#573248}.encourage h2{margin:0;font-size:20px}.encourage p{color:#b8b5bb;font-size:12px;margin:6px 0 0}.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#0d0f12ee;border-top:1px solid #292d34;backdrop-filter:blur(20px);display:flex;justify-content:center;padding:9px 8px calc(9px + env(safe-area-inset-bottom))}.bottom button{width:25%;border:0;background:none;color:#747982;font-size:10px}.bottom button b{display:block;font-size:20px;line-height:22px}.bottom button.active{color:var(--pink2)}
+/* Journal */
+.toolbar{display:flex;align-items:center;justify-content:space-between;margin:5px 0 10px}.toolbar h2{font-size:29px;margin:0;letter-spacing:-1px}.more{width:38px;height:38px;border-radius:50%;border:1px solid #363a41;background:#15181d;color:#fff}.switch{display:grid;grid-template-columns:repeat(3,1fr);background:#202329;border:1px solid #30343b;border-radius:13px;padding:2px;margin:10px 0}.switch button{border:0;background:none;color:var(--muted);padding:8px;border-radius:11px;font-size:12px}.switch button.active{background:#67636a;color:#fff}.month{display:flex;justify-content:space-between;align-items:center;margin:12px 3px 8px}.month strong{font-size:20px}.arrow{border:0;background:none;color:var(--pink2);font-size:27px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.dow{text-align:center;color:#7d8189;font-size:10px;padding:3px}.day{min-height:53px;border:0;border-radius:13px;background:transparent;color:#eee;padding:5px 3px;font-size:12px}.day.muted{opacity:.25}.day.today{background:#f28ab93a;outline:1px solid var(--pink)}.daynum{display:block}.dots{display:flex;justify-content:center;gap:4px;margin-top:7px}.dot{width:6px;height:6px;border-radius:50%;display:block}.mig{background:#ff72b6}.anx{background:#bd8cff}.alc{background:#f6cf7b}.caf{background:#9edcff}.cycle{background:#ff72b6}.legend{display:flex;gap:13px;flex-wrap:wrap;color:#a8abb1;font-size:10px;margin-top:13px}.legend span{display:flex;align-items:center;gap:5px}.selectedHead{display:flex;justify-content:space-between;align-items:center}.eventRow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #272b31}.eventRow:last-child{border-bottom:0}.eventIcon{width:36px;height:36px;border-radius:12px;background:#1d2025;display:grid;place-items:center;font-size:20px}.eventText{flex:1}.eventText b{font-size:13px}.eventValue{color:#d2d0d5;font-size:12px;text-align:right}.addNote{width:100%;border:1px solid #7e3e5e;background:linear-gradient(90deg,#3a1d2b,#251921);color:var(--pink2);border-radius:25px;padding:13px;margin-top:10px}.empty{padding:18px;text-align:center;color:var(--muted);font-size:12px}
+/* Analytics */
+.period{display:grid;grid-template-columns:repeat(3,1fr);background:#1c2025;border:1px solid #30343b;border-radius:13px;padding:2px}.period button{border:0;background:none;color:var(--muted);padding:8px;border-radius:11px;font-size:11px}.period button.active{background:#6a656d;color:#fff}.insight{border-radius:20px;padding:16px;background:linear-gradient(135deg,#281a23,#16171b);border:1px solid #5a3048;margin:10px 0}.insight .star{font-size:20px}.insight strong{display:block;font-size:15px;margin-top:5px}.insight p{color:#aaa7ae;font-size:11px;margin:5px 0 0}.statRow{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #292d34}.statRow:last-child{border-bottom:0}.statLeft{display:flex;align-items:center;gap:10px}.statIcon{font-size:21px;width:28px;text-align:center}.statName{font-size:12px}.statValue{font-size:12px;color:#c8c6ca}.miniBar{width:70px;height:7px;background:#30343a;border-radius:99px;overflow:hidden}.miniBar i{display:block;height:100%;background:var(--pink);border-radius:99px}.analysisCard h3{font-size:14px;margin:0 0 9px}.chart{height:105px;display:flex;align-items:end;gap:6px;padding:8px 2px 0;border-top:1px solid #272b31}.bar{flex:1;background:linear-gradient(180deg,#ff9dca,#63334c);border-radius:5px 5px 2px 2px;min-height:5px}.days{display:flex;justify-content:space-between;color:#777b83;font-size:9px;margin-top:5px}.notice{background:#161a1f;border:1px solid #30343b;border-radius:15px;padding:11px;color:#a8abb1;font-size:11px}.trend{height:110px;position:relative;overflow:hidden;background:linear-gradient(180deg,#171a1f,#14171b);border-radius:14px}.trend svg{width:100%;height:100%}
+/* History */
+.historySource{border:1px solid #49313f;background:#1b171c;border-radius:17px;padding:12px;color:#b8b4ba;font-size:11px}.historyDay{margin:10px 0}.historyDay .date{font-size:14px;font-weight:650;margin-bottom:9px}.historyGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.historyMetric{background:#111419;border:1px solid #272b31;border-radius:13px;padding:10px}.historyMetric .k{font-size:9px;color:var(--muted)}.historyMetric .v{font-size:17px;font-weight:700;margin-top:4px}.historySleep{font-size:10px;color:var(--muted);margin-top:8px}
+/* Modal */
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:flex-end;z-index:50}.modal.open{display:flex}.sheet{width:100%;max-width:520px;margin:auto;background:#171a1f;border:1px solid #343840;border-radius:26px 26px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}.sheetHead{display:flex;justify-content:space-between;align-items:center}.sheet h2{margin:0;font-size:18px}.close{border:0;background:none;color:var(--pink2);font-size:13px}.choiceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.choice{border:1px solid #30343b;background:#111419;color:#fff;border-radius:14px;padding:12px 6px;min-height:58px}.choice.sel{border-color:var(--pink);background:#3b1e2d}.note{width:100%;min-height:72px;border:1px solid #30343b;background:#111419;color:#fff;border-radius:15px;padding:11px;resize:vertical}.save{width:100%;border:0;background:linear-gradient(90deg,#f06aa9,#ff8ec1);color:#160d12;border-radius:23px;padding:13px;font-weight:700;margin-top:10px}.meds{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.med{border:1px solid #30343b;background:#111419;color:#ddd;border-radius:13px;padding:9px 12px}.med.sel{border-color:var(--pink);background:#3b1e2d}.duration{width:100%;border:1px solid #30343b;background:#111419;color:#fff;border-radius:13px;padding:11px;margin:5px 0 10px}
+.loading{opacity:.7}
+@media(min-width:700px){.bottom{position:sticky;top:10px;border:1px solid var(--line);border-radius:18px;margin-top:10px;bottom:auto}.app{padding-bottom:30px}}
 </style>
 </head>
 <body>
 <div class="app">
-<header><div><div class="sub">ЛИЧНЫЙ ТРЕКЕР · GOOGLE HEALTH + WHOOP HISTORY</div><h1 id="title">Сегодня</h1></div><div class="cat">🐈‍⬛</div></header>
+<header class="top"><div><div class="eyebrow">Личный трекер · Google Health + WHOOP history</div><h1 id="title">Сегодня</h1></div><div class="cat">🐈‍⬛</div></header>
 
 <main id="today" class="page active">
-  <div class="card"><div class="row"><div><div class="sub">Доброе утро, Настя!</div><h2 id="todayDate">Подключаем данные…</h2></div><span class="pill" id="liveBadge">Google Health</span></div><div class="sub" id="liveStatus">—</div></div>
+  <section class="hero"><div class="hello">Доброе утро,<strong>Настя!</strong></div><div class="meta" id="todayDate">Загружаем данные…</div><div style="margin-top:10px"><span class="badge" id="liveBadge">Google Health</span> <span class="badge" id="liveStatus">подключение…</span></div></section>
+
   <div class="grid">
-    <div class="card metric"><div class="label">Сон</div><div class="value" id="sleepVal">—</div><div class="sub" id="sleepSub">—</div></div>
-    <div class="card metric"><div class="label">Recovery</div><div class="value accent">—</div><div class="sub">нет такого показателя в Google Health</div></div>
-    <div class="card metric"><div class="label">HRV</div><div class="value" id="hrvVal">—</div><div class="sub">ms · дневное значение</div></div>
-    <div class="card metric"><div class="label">Пульс покоя</div><div class="value" id="rhrVal">—</div><div class="sub">bpm</div></div>
+    <section class="card metric"><div class="label">🌙 Сон</div><div class="value" id="sleepVal">—</div><div class="sub" id="sleepSub">—</div></section>
+    <section class="card metric"><div class="label">🌿 Готовность</div><div class="value accent" id="readinessVal">—</div><div class="sub" id="readinessSub">Google Health</div></section>
+    <section class="card metric"><div class="label">💗 HRV</div><div class="value" id="hrvVal">— <span class="unit">мс</span></div><div class="sub">дневное значение</div></section>
+    <section class="card metric"><div class="label">♥ Пульс покоя</div><div class="value" id="rhrVal">— <span class="unit">уд/мин</span></div><div class="sub">Google Health</div></section>
+    <section class="card metric"><div class="label">👣 Шаги</div><div class="value" id="stepsVal">—</div><div class="sub">за день</div></section>
+    <section class="card metric"><div class="label">🫁 Дыхание</div><div class="value" id="respVal">— <span class="unit">/мин</span></div><div class="sub">среднее</div></section>
   </div>
-  <div class="grid">
-    <div class="card metric"><div class="label">Шаги</div><div class="value" id="stepsVal">—</div><div class="sub">из Google Health</div></div>
-    <div class="card metric"><div class="label">Дыхание</div><div class="value" id="respVal">—</div><div class="sub">дых/мин</div></div>
-  </div>
-  <div class="card"><div class="row"><h2>Нагрузка</h2><span class="pill">Google Health</span></div>
-    <div class="grid" style="margin-top:10px">
-      <div class="metric"><div class="label">Activity Level</div><div class="value" id="activityLevelVal">—</div><div class="sub" id="activityLevelSub">минутные данные</div></div>
-      <div class="metric"><div class="label">HR-зоны</div><div class="value" id="hrZonesVal">—</div><div class="sub" id="hrZonesSub">время по зонам</div></div>
-      <div class="metric"><div class="label">Тренировки</div><div class="value" id="workoutTimeVal">—</div><div class="sub" id="workoutTimeSub">за день</div></div>
-      <div class="metric"><div class="label">Шаги</div><div class="value" id="loadStepsVal">—</div><div class="sub">из Google Health</div></div>
-    </div>
-    <div id="workouts" class="sub" style="margin-top:12px">Тренировки загружаются автоматически.</div>
-    <div class="sub" style="margin-top:12px">Healthy Strain пока не рассчитываем: сначала накопим данные и откалибруем собственную метрику.</div>
-  </div>
-  <div class="card"><div class="row"><h2>Что было вчера?</h2><span class="sub">быстрая отметка</span></div><div class="quick">
-    <button onclick="openLog('alcohol')">🍷 <b>Алкоголь</b><span>количество бокалов</span></button>
-    <button onclick="openLog('caffeine')">☕ <b>Кофе после обеда</b><span>количество кружек</span></button>
-    <button onclick="openLog('anxiety')">😵 <b>Тревожка</b><span>0–2 + длительность</span></button>
-    <button onclick="openLog('migraine')">🤕 <b>Мигрень</b><span>0–2 + лекарства</span></button>
-  </div></div>
-  <div class="card"><h2>Настя, держись</h2><div class="sub">Данные здесь не для оценки тебя, а чтобы лучше понять свой организм.</div></div>
+
+  <div class="sectionTitle"><h2>Нагрузка</h2><span class="muted">Google Health</span></div>
+  <section class="card load"><div class="loadTop"><div><div class="loadMain" id="loadHeadline">—</div><div class="sub">собственная Healthy Strain появится после накопления данных</div></div><span class="badge">не WHOOP Strain</span></div><div class="loadBar"><i id="loadBar"></i></div><div class="loadGrid">
+    <div class="loadItem"><div class="k">Activity Level</div><div class="v" id="activityLevelVal">—</div><div class="sub" id="activityLevelSub">—</div></div>
+    <div class="loadItem"><div class="k">HR-зоны</div><div class="v" id="hrZonesVal">—</div><div class="sub" id="hrZonesSub">—</div></div>
+    <div class="loadItem"><div class="k">Тренировки</div><div class="v" id="workoutTimeVal">—</div><div class="sub" id="workoutTimeSub">—</div></div>
+    <div class="loadItem"><div class="k">Шаги</div><div class="v" id="loadStepsVal">—</div><div class="sub">двигательная активность</div></div>
+  </div><div id="workouts" class="sub" style="margin-top:12px">Тренировки загружаются автоматически.</div></section>
+
+  <div class="sectionTitle"><h2>Что было вчера?</h2><span class="muted">быстрая отметка</span></div>
+  <section class="quick">
+    <button onclick="openLog('alcohol')"><span class="qicon">🍷</span><b>Алкоголь</b><span>сколько бокалов</span></button>
+    <button onclick="openLog('caffeine')"><span class="qicon">☕</span><b>Кофеин после обеда</b><span>сколько чашек</span></button>
+    <button onclick="openLog('anxiety')"><span class="qicon">🌸</span><b>Тревожка</b><span>0–2 + длительность</span></button>
+    <button onclick="openLog('migraine')"><span class="qicon">🤕</span><b>Мигрень</b><span>0–2 + лекарства</span></button>
+  </section>
+  <section class="card encourage"><h2>Настя, держись ✦</h2><p>Данные здесь не для оценки тебя. Мы собираем их, чтобы со временем лучше понимать твои закономерности.</p></section>
 </main>
 
 <main id="journal" class="page">
-  <div class="card"><div class="row"><h2 id="monthTitle">Сентябрь 2026</h2><span class="pill">Календарь</span></div>
-    <div class="calendar" id="calendar"></div>
-    <div class="sub" style="margin-top:12px">🤕 мигрень · 😵 тревога · 🍷 алкоголь · ☕ кофеин</div>
-  </div>
-  <div class="card" id="selectedDay"><h2>Выбери день</h2><div class="sub">Тапни по дню, чтобы увидеть события.</div></div>
+  <div class="toolbar"><h2>Журнал</h2><button class="more">•••</button></div>
+  <div class="switch"><button class="active">Месяц</button><button>Неделя</button><button>Год</button></div>
+  <section class="card"><div class="month"><button class="arrow" onclick="changeMonth(-1)">‹</button><strong id="monthTitle">—</strong><button class="arrow" onclick="changeMonth(1)">›</button></div><div class="calendar" id="calendar"></div><div class="legend"><span><i class="dot mig"></i> Мигрень</span><span><i class="dot anx"></i> Тревожность</span><span><i class="dot alc"></i> Алкоголь</span><span><i class="dot caf"></i> Кофеин</span><span><i class="dot cycle"></i> Цикл</span></div></section>
+  <section class="card" id="selectedDay"><div class="empty">Выбери день в календаре.</div></section>
+  <button class="addNote" onclick="addNote()">＋ Добавить заметку</button>
 </main>
 
 <main id="analytics" class="page">
-  <div class="card"><div class="row"><h2>Аналитика</h2><span class="pill">без магии</span></div>
-    <div class="notice">Никаких выводов по 2–3 наблюдениям. Пока данных мало — так и пишем: «недостаточно данных».</div>
-  </div>
-  <div id="insights"></div>
+  <div class="toolbar"><h2>Аналитика</h2><span class="badge">по твоим данным</span></div>
+  <div class="period"><button class="active" onclick="setPeriod(7,this)">7 дней</button><button onclick="setPeriod(30,this)">30 дней</button><button onclick="setPeriod(90,this)">90 дней</button></div>
+  <section id="analyticsContent"></section>
 </main>
 
 <main id="history" class="page">
-  <div class="card"><div class="row"><h2>История WHOOP</h2><span class="pill">отдельный источник</span></div><div class="sub">Исторический экспорт WHOOP не смешивается с текущими Google Health данными.</div></div>
-  <div id="historyList"></div>
+  <div class="toolbar"><h2>История</h2><span class="badge">WHOOP</span></div>
+  <div class="historySource">Исторические данные WHOOP живут отдельно от текущих Google Health данных. Здесь не смешиваем источники.</div>
+  <section id="historyList"></section>
 </main>
 </div>
 
 <nav class="bottom">
-<button class="active" onclick="showPage('today',this)"><b>◉</b>Сегодня</button>
-<button onclick="showPage('journal',this)"><b>▦</b>Журнал</button>
-<button onclick="showPage('analytics',this)"><b>✦</b>Аналитика</button>
+<button class="active" onclick="showPage('today',this)"><b>⌂</b>Сегодня</button>
+<button onclick="showPage('journal',this)"><b>▣</b>Журнал</button>
+<button onclick="showPage('analytics',this)"><b>▥</b>Аналитика</button>
 <button onclick="showPage('history',this)"><b>◷</b>История</button>
 </nav>
 
-<div class="modal" id="modal"><div class="sheet"><div class="row"><h2 id="modalTitle">Запись</h2><button class="opt" onclick="closeLog()">Закрыть</button></div><div id="modalBody"></div></div></div>
+<div class="modal" id="modal"><div class="sheet"><div class="sheetHead"><h2 id="modalTitle">Запись</h2><button class="close" onclick="closeLog()">Отмена</button></div><div id="modalBody"></div></div></div>
 
 <script>
 const BACKEND='https://script.google.com/macros/s/AKfycbwUh9XEyN14Ui3lVHdFxf9Dnqb3eJG29ZO3kZD2prhyYe10GXJrNSCE9RurPBEw1p9BRA/exec';
-let GOOGLE=null, WHOOP=null;
-let manual=JSON.parse(localStorage.getItem('healthyManual')||'[]');
-const labels={alcohol:'Алкоголь',caffeine:'Кофе после обеда',anxiety:'Тревожка',migraine:'Мигрень'};
-const icons={alcohol:'🍷',caffeine:'☕',anxiety:'😵',migraine:'🤕'};
-
-function loadJsonp(url){
-  return new Promise((resolve,reject)=>{
-    const cb='healthyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    const script=document.createElement('script');
-    let done=false;
-    function cleanup(){
-      if(done)return;
-      done=true;
-      clearTimeout(timer);
-      try{delete window[cb]}catch(_){}
-      if(script.parentNode)script.parentNode.removeChild(script);
-    }
-    const timer=setTimeout(()=>{
-      cleanup();
-      reject(new Error('Google Health: timeout'));
-    },20000);
-    window[cb]=(data)=>{
-      cleanup();
-      if(data&&data.ok===false)reject(new Error(data.error||'Google Health error'));
-      else resolve(data);
-    };
-    script.async=true;
-    script.onerror=()=>{
-      cleanup();
-      reject(new Error('Google Health: script load error'));
-    };
-    script.src=url+(url.includes('?')?'&':'?')+
-      'callback='+encodeURIComponent(cb)+'&_='+Date.now();
-    document.head.appendChild(script);
-  });
-}
-
-async function boot(){
-  try{
-    WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json());
-  }catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}
-  GOOGLE=null;
-  try{
-    const googleUrl=BACKEND+'?action=data&days=60';
-    GOOGLE=await loadJsonp(googleUrl);
-    if(!GOOGLE || !GOOGLE.ok) throw new Error((GOOGLE&&GOOGLE.error)||'Google Health error');
-    document.getElementById('liveStatus').textContent='Свежие данные из Google Health API';
-    document.getElementById('liveBadge').textContent='Google Health';
-  }catch(e){
-    console.error('Google Health connection error:',e);
-    GOOGLE=null;
-    document.getElementById('liveStatus').textContent='Google Health пока недоступен. История WHOOP остаётся отдельно.';
-    document.getElementById('liveBadge').textContent='нет связи';
-  }
-  renderAll();
-}
-
-function sortedGoogleDays(){return Object.values(GOOGLE?.days||{}).sort((a,b)=>String(b.date).localeCompare(String(a.date)))}
-function latestGoogleDay(){return sortedGoogleDays()[0]||null}
+let GOOGLE=null,WHOOP=null,manual=JSON.parse(localStorage.getItem('healthyManual')||'[]');
+const labels={alcohol:'Алкоголь',caffeine:'Кофеин после обеда',anxiety:'Тревожность',migraine:'Мигрень'};
+const icons={alcohol:'🍷',caffeine:'☕',anxiety:'🌸',migraine:'🤕'};
+let viewDate=new Date();let currentType=null,currentState={};let analyticsDays=7;
+function loadJsonp(url){return new Promise((resolve,reject)=>{const cb='healthyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');let done=false;function clean(){if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(_){}if(s.parentNode)s.parentNode.removeChild(s)}const timer=setTimeout(()=>{clean();reject(new Error('timeout'))},20000);window[cb]=d=>{clean();if(d&&d.ok===false)reject(new Error(d.error||'Google Health error'));else resolve(d)};s.async=true;s.onerror=()=>{clean();reject(new Error('script load error'))};s.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.appendChild(s)})}
+async function boot(){try{WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json())}catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}try{GOOGLE=await loadJsonp(BACKEND+'?action=data&days=60');if(!GOOGLE||!GOOGLE.ok)throw new Error('Google Health error');document.getElementById('liveStatus').textContent='свежие данные';document.getElementById('liveBadge').textContent='Google Health'}catch(e){console.error(e);GOOGLE=null;document.getElementById('liveStatus').textContent='нет связи';document.getElementById('liveBadge').textContent='offline'}renderAll()}
+function days(){return Object.values(GOOGLE?.days||{}).sort((a,b)=>String(b.date).localeCompare(String(a.date)))}
+function latest(){return days()[0]||null}
 function fmtDate(ds){return new Date(ds+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
-function minsText(mins){if(mins==null)return '—';return `${Math.floor(mins/60)}:${String(Math.round(mins%60)).padStart(2,'0')}`}
-function renderToday(){
-  const d=latestGoogleDay();
-  if(!d){document.getElementById('todayDate').textContent='Нет данных Google Health';return}
-  document.getElementById('todayDate').textContent=fmtDate(d.date);
-  document.getElementById('sleepVal').textContent=minsText(d.sleep?.durationMin);
-  document.getElementById('sleepSub').textContent=d.sleep?`Deep ${Math.round(d.sleep.deepMin||0)} мин · REM ${Math.round(d.sleep.remMin||0)} мин · Light ${Math.round(d.sleep.lightMin||0)} мин`:'нет сна';
-  document.getElementById('hrvVal').textContent=d.hrv!=null?Math.round(d.hrv):'—';
-  document.getElementById('rhrVal').textContent=d.rhr!=null?Math.round(d.rhr):'—';
-  document.getElementById('stepsVal').textContent=d.steps!=null?d.steps.toLocaleString('ru-RU'):'—';
-  document.getElementById('respVal').textContent=d.respiratoryRate!=null?d.respiratoryRate.toFixed(1):'—';
-  const ws=d.workouts||[];
-  document.getElementById('workouts').innerHTML=ws.length?ws.map(w=>`🏃 ${esc(w.name||prettyType(w.type))}${w.durationMin!=null?' · '+Math.round(w.durationMin)+' мин':''}${w.calories!=null?' · '+Math.round(w.calories)+' ккал':''}`).join('<br>'):'Тренировок за этот день нет.';
-
-  // Google Health load metrics — показываем как отдельные метрики,
-  // не выдавая их за WHOOP Day Strain.
-  const levels=d.activityLevel||[];
-  const levelMinutes={SEDENTARY:0,LIGHTLY_ACTIVE:0,MODERATELY_ACTIVE:0,VERY_ACTIVE:0};
-  levels.forEach(x=>{ if(levelMinutes[x.type]!=null) levelMinutes[x.type]+=Number(x.durationMin||0); });
-  const levelOrder=['VERY_ACTIVE','MODERATELY_ACTIVE','LIGHTLY_ACTIVE','SEDENTARY'];
-  const dominant=levelOrder.find(x=>levelMinutes[x]>0);
-  const levelNames={
-    SEDENTARY:'Sedentary',
-    LIGHTLY_ACTIVE:'Lightly Active',
-    MODERATELY_ACTIVE:'Moderately Active',
-    VERY_ACTIVE:'Very Active'
-  };
-  document.getElementById('activityLevelVal').textContent=dominant?levelNames[dominant]:'—';
-  document.getElementById('activityLevelSub').textContent=levels.length?`${levels.length} мин. записей · активных ${Math.round(levelMinutes.LIGHTLY_ACTIVE+levelMinutes.MODERATELY_ACTIVE+levelMinutes.VERY_ACTIVE)} мин.`:'нет данных';
-
-  const zones=d.timeInHeartRateZone||[];
-  const zoneTotal=zones.reduce((sum,x)=>sum+Number(x.durationMin||0),0);
-  document.getElementById('hrZonesVal').textContent=zoneTotal?`${Math.round(zoneTotal)} мин`:'—';
-  document.getElementById('hrZonesSub').textContent=zones.length?zones.map(x=>`${x.zone||'зона'} ${Math.round(x.durationMin||0)} мин`).join(' · '):'нет данных';
-
-  const workoutTotal=ws.reduce((sum,w)=>sum+Number(w.durationMin||0),0);
-  document.getElementById('workoutTimeVal').textContent=workoutTotal?`${Math.round(workoutTotal)} мин`:'—';
-  document.getElementById('workoutTimeSub').textContent=ws.length?`${ws.length} ${ws.length===1?'тренировка':'тренировки'}`:'нет тренировок';
-
-  document.getElementById('loadStepsVal').textContent=d.steps!=null?d.steps.toLocaleString('ru-RU'):'—';
-}
-function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-
-function whoopPhys(){return (WHOOP.physiologicalCycles||[]).filter(x=>x['Cycle start time']).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}
-function whoopSleep(){return (WHOOP.sleeps||[]).filter(x=>x['Asleep duration (min)']!=null).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}
-function journalMap(){
-  const m={};
-  for(const r of (WHOOP.journal||[])){if(!r.answeredYes)continue;(m[r.date]??=[]).push(r.category)}
-  for(const x of manual){(m[x.date]??=[]).push(x.category)}
-  return m;
-}
-function renderCalendar(){
-  const root=document.getElementById('calendar');root.innerHTML='';
-  ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(x=>{let d=document.createElement('div');d.className='dow';d.textContent=x;root.appendChild(d)});
-  const now=new Date(), y=now.getFullYear(), mo=now.getMonth(), first=new Date(y,mo,1), last=new Date(y,mo+1,0), offset=(first.getDay()+6)%7, jm=journalMap();
-  document.getElementById('monthTitle').textContent=first.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});
-  for(let i=0;i<offset;i++){let d=document.createElement('div');d.className='day muted';root.appendChild(d)}
-  for(let n=1;n<=last.getDate();n++){
-    let ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`;
-    let d=document.createElement('button');d.className='day';d.textContent=n;d.onclick=()=>selectDay(ds);
-    if(ds===new Date().toISOString().slice(0,10))d.classList.add('today');
-    const cats=[...(jm[ds]||[])];
-    if(cats.length){let dots=document.createElement('div');dots.className='dots';[...new Set(cats)].forEach(c=>{let q=document.createElement('i');q.className='dot '+({migraine:'mig',anxiety:'anx',alcohol:'alc',caffeine:'caf'}[c]||'');dots.appendChild(q)});d.appendChild(dots)}
-    root.appendChild(d);
-  }
-}
-function selectDay(ds){
-  const cats=journalMap()[ds]||[], man=manual.filter(x=>x.date===ds);
-  const text=cats.length?[...new Set(cats)].map(c=>`${icons[c]||''} ${labels[c]||c}`).join('<br>'):'Событий нет';
-  const details=man.map(x=>x.detail?`<div class="sub">${icons[x.category]} ${esc(x.detail)}</div>`:'').join('');
-  document.getElementById('selectedDay').innerHTML=`<h2>${fmtDate(ds)}</h2><div>${text}</div>${details}`;
-}
-function renderInsights(){
-  const root=document.getElementById('insights');
-  const n=sortedGoogleDays().filter(d=>d.hrv!=null).length;
-  root.innerHTML=`<div class="insight"><div class="sub">Покрытие Google Health</div><div class="big">${n} дней с HRV</div><div class="sub">Для нормальной аналитики связей будем накапливать историю. Пока — недостаточно данных для сильных выводов.</div></div>`;
-}
-function renderHistory(){
-  const ps=whoopPhys().slice(0,30), root=document.getElementById('historyList');
-  root.innerHTML=ps.map(p=>{
-    const ds=String(p['Cycle start time']).slice(0,10), s=whoopSleep().find(x=>String(x['Cycle start time']).slice(0,10)===ds);
-    return `<div class="card"><div class="row"><h3>${fmtDate(ds)}</h3><span class="pill">WHOOP</span></div><div class="grid">
-      <div><div class="sub">Recovery</div><b>${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</b></div>
-      <div><div class="sub">HRV</div><b>${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'} ms</b></div>
-      <div><div class="sub">RHR</div><b>${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'} bpm</b></div>
-      <div><div class="sub">Day Strain</div><b>${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</b></div>
-    </div>${s?`<div class="sub">Сон ${minsText(s['Asleep duration (min)'])} · Performance ${s['Sleep performance %']!=null?Math.round(s['Sleep performance %'])+'%':'—'}</div>`:''}</div>`;
-  }).join('');
-}
-function renderAll(){renderToday();renderCalendar();renderInsights();renderHistory()}
-
-function showPage(id,btn){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');
-  document.getElementById('title').textContent={today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История'}[id];
-}
-
-let currentType=null,currentState={};
-function openLog(type){
-  currentType=type;currentState={};
-  document.getElementById('modalTitle').textContent=labels[type];
-  const body=document.getElementById('modalBody');
-  if(type==='alcohol') body.innerHTML=`<div class="sub">Сколько бокалов?</div><div class="options">${[0,1,2,3,4].map(n=>`<button class="opt" onclick="pick(${n})">${n}</button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="smallbtn" style="margin-top:10px;width:100%" onclick="saveLog()">Сохранить</button>`;
-  if(type==='caffeine') body.innerHTML=`<div class="sub">Сколько кружек после обеда?</div><div class="options">${[0,1,2,3,4].map(n=>`<button class="opt" onclick="pick(${n})">${n}</button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="smallbtn" style="margin-top:10px;width:100%" onclick="saveLog()">Сохранить</button>`;
-  if(type==='anxiety') body.innerHTML=`<div class="sub">Выбери уровень</div><div class="options">${['0 — слегка тревожно','1 — телесно накрыло, без паники/слёз','2 — сильная атака: паника/слёзы/страх'].map((x,i)=>`<button class="opt" onclick="pick(${i})">${x}</button>`).join('')}</div><input id="duration" class="select" type="number" min="0" placeholder="Длительность, минут — по желанию"><button class="smallbtn" style="margin-top:10px;width:100%" onclick="saveLog()">Сохранить</button>`;
-  if(type==='migraine') body.innerHTML=`<div class="sub">Уровень</div><div class="options">${['0 — таблетка до начала/на ранних признаках','1 — суматриптан + ОКИ, пришлось прижимать/держать голову','2 — сильная: тошнота/светобоязнь'].map((x,i)=>`<button class="opt" onclick="pick(${i})">${x}</button>`).join('')}</div><div class="sub">Лекарства</div><div class="options"><button class="opt" onclick="toggleMed('sumatriptan')">Суматриптан</button><button class="opt" onclick="toggleMed('oki')">ОКИ</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="smallbtn" style="margin-top:10px;width:100%" onclick="saveLog()">Сохранить</button>`;
-  document.getElementById('modal').classList.add('open');
-}
-function pick(v){currentState.value=v;document.querySelectorAll('#modalBody .opt').forEach(b=>b.classList.remove('sel'));event.currentTarget.classList.add('sel')}
-function toggleMed(m){currentState.meds=currentState.meds||[];currentState.meds=currentState.meds.includes(m)?currentState.meds.filter(x=>x!==m):[...currentState.meds,m];event.currentTarget.classList.toggle('sel')}
-function saveLog(){
-  if(currentState.value==null)return;
-  const x={date:new Date().toISOString().slice(0,10),category:currentType,value:currentState.value,detail:''};
-  const note=document.getElementById('logNote')?.value?.trim();if(note)x.detail+=note;
-  const dur=document.getElementById('duration')?.value;if(dur)x.detail+=(x.detail?' · ':'')+`длительность ${dur} мин`;
-  if(currentState.meds?.length)x.detail+=(x.detail?' · ':'')+`лекарства: ${currentState.meds.join(', ')}`;
-  manual.push(x);localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();selectDay(x.date);
-}
+function minsText(m){if(m==null)return '—';return `${Math.floor(m/60)} ч ${Math.round(m%60)} мин`}
+function shortMins(m){if(m==null)return '—';return `${Math.floor(m/60)}:${String(Math.round(m%60)).padStart(2,'0')}`}
+function renderToday(){const d=latest();if(!d){document.getElementById('todayDate').textContent='Нет данных Google Health';return}document.getElementById('todayDate').textContent=fmtDate(d.date);document.getElementById('sleepVal').textContent=minsText(d.sleep?.durationMin);document.getElementById('sleepSub').textContent=d.sleep?`Deep ${Math.round(d.sleep.deepMin||0)} · REM ${Math.round(d.sleep.remMin||0)} мин`:'нет данных';document.getElementById('readinessVal').textContent=d.readiness!=null?Math.round(d.readiness):'—';document.getElementById('readinessSub').textContent=d.readiness!=null?'Google Health':'нет показателя в текущем источнике';document.getElementById('hrvVal').innerHTML=(d.hrv!=null?Math.round(d.hrv):'—')+' <span class="unit">мс</span>';document.getElementById('rhrVal').innerHTML=(d.rhr!=null?Math.round(d.rhr):'—')+' <span class="unit">уд/мин</span>';document.getElementById('stepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';document.getElementById('respVal').innerHTML=(d.respiratoryRate!=null?Number(d.respiratoryRate).toFixed(1):'—')+' <span class="unit">/мин</span>';
+const ws=d.workouts||[],levels=d.activityLevel||[],lm={SEDENTARY:0,LIGHTLY_ACTIVE:0,MODERATELY_ACTIVE:0,VERY_ACTIVE:0};levels.forEach(x=>{if(lm[x.type]!=null)lm[x.type]+=Number(x.durationMin||0)});const order=['VERY_ACTIVE','MODERATELY_ACTIVE','LIGHTLY_ACTIVE','SEDENTARY'],dominant=order.find(x=>lm[x]>0);const names={SEDENTARY:'Sedentary',LIGHTLY_ACTIVE:'Lightly Active',MODERATELY_ACTIVE:'Moderately Active',VERY_ACTIVE:'Very Active'};const activeMin=lm.LIGHTLY_ACTIVE+lm.MODERATELY_ACTIVE+lm.VERY_ACTIVE;document.getElementById('activityLevelVal').textContent=dominant?names[dominant]:'—';document.getElementById('activityLevelSub').textContent=levels.length?`${Math.round(activeMin)} мин активных`:'нет данных';const zones=d.timeInHeartRateZone||[],zt=zones.reduce((a,x)=>a+Number(x.durationMin||0),0);document.getElementById('hrZonesVal').textContent=zt?`${Math.round(zt)} мин`:'—';document.getElementById('hrZonesSub').textContent=zones.length?zones.map(x=>`${x.zone||''} ${Math.round(x.durationMin||0)}`).join(' · '):'нет данных';const wt=ws.reduce((a,w)=>a+Number(w.durationMin||0),0);document.getElementById('workoutTimeVal').textContent=wt?`${Math.round(wt)} мин`:'—';document.getElementById('workoutTimeSub').textContent=ws.length?`${ws.length} ${ws.length===1?'тренировка':'тренировки'}`:'нет тренировок';document.getElementById('loadStepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';document.getElementById('loadHeadline').textContent=dominant?names[dominant]:'Нет данных';const score=Math.min(100,Math.round((activeMin/180)*70+(zt/120)*30));document.getElementById('loadBar').style.width=(isFinite(score)?score:0)+'%';document.getElementById('workouts').innerHTML=ws.length?ws.map(w=>`🏃 ${esc(w.name||prettyType(w.type))}${w.durationMin!=null?' · '+Math.round(w.durationMin)+' мин':''}${w.calories!=null?' · '+Math.round(w.calories)+' ккал':''}`).join('<br>'):'Тренировок за этот день нет.'}
+function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function journalMap(){const m={};for(const r of WHOOP?.journal||[]){if(!r.answeredYes)continue;(m[r.date]??=[]).push(r.category)}for(const x of manual){(m[x.date]??=[]).push(x.category)}return m}
+function renderCalendar(){const root=document.getElementById('calendar');root.innerHTML='';['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(x=>{const e=document.createElement('div');e.className='dow';e.textContent=x;root.appendChild(e)});const y=viewDate.getFullYear(),mo=viewDate.getMonth(),first=new Date(y,mo,1),last=new Date(y,mo+1,0),offset=(first.getDay()+6)%7,jm=journalMap();document.getElementById('monthTitle').textContent=first.toLocaleDateString('ru-RU',{month:'long',year:'numeric'});for(let i=0;i<offset;i++){const e=document.createElement('div');e.className='day muted';root.appendChild(e)}for(let n=1;n<=last.getDate();n++){const ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`,e=document.createElement('button');e.className='day';if(ds===new Date().toISOString().slice(0,10))e.classList.add('today');e.innerHTML=`<span class="daynum">${n}</span>`;e.onclick=()=>selectDay(ds);const cats=[...(jm[ds]||[])];if(cats.length){const dots=document.createElement('div');dots.className='dots';[...new Set(cats)].forEach(c=>{const q=document.createElement('i');q.className='dot '+({migraine:'mig',anxiety:'anx',alcohol:'alc',caffeine:'caf'}[c]||'');dots.appendChild(q)});e.appendChild(dots)}root.appendChild(e)}}
+function selectDay(ds){const man=manual.filter(x=>x.date===ds),cats=journalMap()[ds]||[],root=document.getElementById('selectedDay');let rows='';for(const c of [...new Set(cats)]){const found=man.filter(x=>x.category===c);let val=found.length?found.map(x=>x.value!=null?x.value:'').join(', '):'отмечено в истории';rows+=`<div class="eventRow"><div class="eventIcon">${icons[c]||'•'}</div><div class="eventText"><b>${labels[c]||c}</b></div><div class="eventValue">${esc(val)}</div></div>`}if(!rows)rows='<div class="empty">Событий нет.</div>';root.innerHTML=`<div class="selectedHead"><h3 style="margin:0">${fmtDate(ds)}</h3><span class="badge">${cats.length} событий</span></div>${rows}`}
+function changeMonth(n){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+n,1);renderCalendar()}
+function analyticsManual(type,period){const end=new Date();const start=new Date(end.getTime()-period*86400000);return manual.filter(x=>x.category===type&&new Date(x.date+'T23:59:59')>=start)}
+function renderAnalytics(){const root=document.getElementById('analyticsContent'),period=analyticsDays,arr=days().slice(0,period),h=arr.filter(x=>x.hrv!=null),sleep=arr.filter(x=>x.sleep?.durationMin!=null),types=['migraine','anxiety','alcohol','caffeine'],names={migraine:'Мигрень',anxiety:'Тревожность',alcohol:'Алкоголь',caffeine:'Кофеин после обеда'};let stats='';types.forEach(t=>{const count=analyticsManual(t,period).length;stats+=`<div class="statRow"><div class="statLeft"><span class="statIcon">${icons[t]}</span><span class="statName">${names[t]}</span></div><div style="display:flex;align-items:center;gap:9px"><div class="miniBar"><i style="width:${Math.min(100,count*16)}%"></i></div><span class="statValue">${count} дн.</span></div></div>`});const sleepAvg=sleep.length?sleep.reduce((a,x)=>a+x.sleep.durationMin,0)/sleep.length:null;root.innerHTML=`<section class="insight"><span class="star">✦</span><strong>Пока без поспешных выводов</strong><p>Аналитика показывает факты и накопление данных. Причинные связи будем показывать только при достаточном количестве наблюдений.</p></section><section class="card analysisCard"><h3>Частота событий · ${period} дней</h3>${stats}</section><section class="grid"><section class="card analysisCard"><div class="sub">Средний сон</div><div class="metric" style="min-height:0"><div class="value">${sleepAvg!=null?minsText(sleepAvg):'—'}</div><div class="sub">${sleep.length} дней с данными</div></div></section><section class="card analysisCard"><div class="sub">HRV</div><div class="metric" style="min-height:0"><div class="value">${h.length?Math.round(h.reduce((a,x)=>a+x.hrv,0)/h.length):'—'} <span class="unit">мс</span></div><div class="sub">${h.length} дней с данными</div></div></section></section><section class="card analysisCard"><h3>Сон по дням</h3>${sleep.length?`<div class="chart">${sleep.slice(0,14).reverse().map(x=>`<i class="bar" style="height:${Math.max(8,Math.min(100,x.sleep.durationMin/600*100))}%" title="${x.date}"></i>`).join('')}</div><div class="days"><span>раньше</span><span>сейчас</span></div>`:'<div class="empty">Недостаточно данных для графика.</div>'}</section><div class="notice">Доступно ${arr.length} дней Google Health. Для раздела «Взаимосвязи» сначала накопим полноценную историю.</div>`}
+function setPeriod(n,btn){analyticsDays=n;document.querySelectorAll('.period button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAnalytics()}
+function whoopPhys(){return (WHOOP?.physiologicalCycles||[]).filter(x=>x['Cycle start time']).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}function whoopSleep(){return (WHOOP?.sleeps||[]).filter(x=>x['Asleep duration (min)']!=null).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}
+function renderHistory(){const root=document.getElementById('historyList'),ps=whoopPhys().slice(0,30),ss=whoopSleep();if(!ps.length){root.innerHTML='<div class="empty">WHOOP history пока не загружена.</div>';return}root.innerHTML=ps.map(p=>{const ds=String(p['Cycle start time']).slice(0,10),s=ss.find(x=>String(x['Cycle start time']).slice(0,10)===ds);return `<section class="card historyDay"><div class="date">${fmtDate(ds)}</div><div class="historyGrid"><div class="historyMetric"><div class="k">Recovery</div><div class="v">${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</div></div><div class="historyMetric"><div class="k">HRV</div><div class="v">${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'}</div></div><div class="historyMetric"><div class="k">RHR</div><div class="v">${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'}</div></div><div class="historyMetric"><div class="k">Day Strain</div><div class="v">${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</div></div></div>${s?`<div class="historySleep">Сон ${minsText(s['Asleep duration (min)'])} · Sleep Performance ${s['Sleep performance %']!=null?Math.round(s['Sleep performance %'])+'%':'—'}</div>`:''}</section>`}).join('')}
+function renderAll(){renderToday();renderCalendar();selectDay(new Date().toISOString().slice(0,10));renderAnalytics();renderHistory()}
+function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('title').textContent={today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История'}[id]}
+function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date(Date.now()-86400000).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
+function pick(v,el){currentState.value=v;el.parentNode.querySelectorAll('.choice').forEach(x=>x.classList.remove('sel'));el.classList.add('sel')}function toggleMed(m,el){currentState.meds=currentState.meds||[];currentState.meds=currentState.meds.includes(m)?currentState.meds.filter(x=>x!==m):[...currentState.meds,m];el.classList.toggle('sel')}
+function saveLog(){if(currentState.value==null)return;const date=new Date(Date.now()-86400000).toISOString().slice(0,10);let detail='';const note=document.getElementById('logNote')?.value?.trim();if(note)detail+=note;const dur=document.getElementById('duration')?.value;if(dur)detail+=(detail?' · ':'')+`длительность ${dur} мин`;if(currentState.meds?.length)detail+=(detail?' · ':'')+`лекарства: ${currentState.meds.join(', ')}`;manual.push({date,category:currentType,value:currentState.value,detail});localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();selectDay(date);renderAnalytics()}
 function closeLog(){document.getElementById('modal').classList.remove('open')}
+function addNote(){const date=prompt('Заметка за какую дату? YYYY-MM-DD',new Date().toISOString().slice(0,10));if(!date)return;const text=prompt('Текст заметки');if(!text)return;manual.push({date,category:'note',value:null,detail:text});localStorage.setItem('healthyManual',JSON.stringify(manual));renderCalendar();selectDay(date)}
 boot();
 </script>
 </body>
