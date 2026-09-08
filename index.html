@@ -102,15 +102,32 @@ const icons={alcohol:'🍷',caffeine:'☕',anxiety:'😵',migraine:'🤕'};
 
 function loadJsonp(url){
   return new Promise((resolve,reject)=>{
-    const cb='healthyCb'+Date.now()+Math.random().toString(36).slice(2);
+    const cb='healthyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const script=document.createElement('script');
-    const sep=url.includes('?')?'&':'?';
-    const src=url+sep+'callback='+encodeURIComponent(cb)+'&_='+Date.now();
-    const timer=setTimeout(()=>{cleanup();reject(new Error('timeout'))},20000);
-    function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
-    window[cb]=data=>{cleanup();resolve(data)};
-    script.onerror=()=>{cleanup();reject(new Error('network'))};
-    script.src=src;
+    let done=false;
+    function cleanup(){
+      if(done)return;
+      done=true;
+      clearTimeout(timer);
+      try{delete window[cb]}catch(_){}
+      if(script.parentNode)script.parentNode.removeChild(script);
+    }
+    const timer=setTimeout(()=>{
+      cleanup();
+      reject(new Error('Google Health: timeout'));
+    },20000);
+    window[cb]=(data)=>{
+      cleanup();
+      if(data&&data.ok===false)reject(new Error(data.error||'Google Health error'));
+      else resolve(data);
+    };
+    script.async=true;
+    script.onerror=()=>{
+      cleanup();
+      reject(new Error('Google Health: script load error'));
+    };
+    script.src=url+(url.includes('?')?'&':'?')+
+      'callback='+encodeURIComponent(cb)+'&_='+Date.now();
     document.head.appendChild(script);
   });
 }
@@ -119,13 +136,16 @@ async function boot(){
   try{
     WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json());
   }catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}
+  GOOGLE=null;
   try{
-    GOOGLE=await loadJsonp(BACKEND+'?action=data&days=60');
-    if(!GOOGLE.ok) throw new Error(GOOGLE.error||'Google Health error');
+    const googleUrl=BACKEND+'?action=data&days=60';
+    GOOGLE=await loadJsonp(googleUrl);
+    if(!GOOGLE || !GOOGLE.ok) throw new Error((GOOGLE&&GOOGLE.error)||'Google Health error');
     document.getElementById('liveStatus').textContent='Свежие данные из Google Health API';
     document.getElementById('liveBadge').textContent='Google Health';
   }catch(e){
-    console.error('Google Health connection error:', e);
+    console.error('Google Health connection error:',e);
+    GOOGLE=null;
     document.getElementById('liveStatus').textContent='Google Health пока недоступен. История WHOOP остаётся отдельно.';
     document.getElementById('liveBadge').textContent='нет связи';
   }
