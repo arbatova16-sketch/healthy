@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111114">
+<title>Healthy — личный трекер</title>
+<style>
+:root{--bg:#0d0d10;--card:#17171c;--card2:#1e1e25;--text:#f7f4f7;--muted:#9995a0;--pink:#ff6fb5;--pink2:#ff9acb;--line:#292932;--green:#8ee0a7;--yellow:#ffd477}
+*{box-sizing:border-box}body{margin:0;background:#08080a;color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 16px calc(84px + env(safe-area-inset-bottom))}
+header{padding:18px 2px 12px;display:flex;justify-content:space-between;align-items:center}
+h1,h2,h3,p{margin:0}h1{font-size:29px;letter-spacing:-.8px}h2{font-size:20px;margin:8px 0 12px}h3{font-size:15px}.sub{color:var(--muted);font-size:13px;margin-top:5px}
+.cat{width:66px;height:66px;border-radius:22px;background:linear-gradient(145deg,#ff9acb,#8b5b88);display:grid;place-items:center;font-size:34px;box-shadow:0 0 32px #ff6fb533}
+.tabs{display:flex;gap:6px;overflow:auto;margin:8px 0 18px}.tab{border:1px solid var(--line);background:#111116;color:var(--muted);padding:8px 12px;border-radius:999px;white-space:nowrap}.tab.active{background:#2b1924;color:#fff;border-color:#6d3b58}
+.card{background:linear-gradient(145deg,var(--card),#121217);border:1px solid var(--line);border-radius:22px;padding:16px;margin:10px 0;box-shadow:0 12px 30px #0003}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.metric .value{font-size:27px;font-weight:700;letter-spacing:-.6px;margin-top:7px}.metric .label{color:var(--muted);font-size:12px}.accent{color:var(--pink2)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.pill{font-size:12px;color:var(--muted);background:#24242b;border-radius:999px;padding:5px 8px}
+.progress{height:7px;background:#292930;border-radius:99px;overflow:hidden;margin-top:10px}.progress>i{display:block;height:100%;background:linear-gradient(90deg,#ff6fb5,#c98bff);border-radius:99px}
+.moods{display:flex;justify-content:space-between;margin-top:12px}.mood{font-size:24px;background:none;border:0;filter:grayscale(.3)}
+.quick{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quick button{border:1px solid var(--line);background:#141419;color:#fff;border-radius:16px;padding:13px;text-align:left}.quick b{display:block;font-size:14px}.quick span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:#0b0b0eeF;border-top:1px solid var(--line);backdrop-filter:blur(18px);display:flex;justify-content:center;padding:10px 8px calc(10px + env(safe-area-inset-bottom));z-index:5}.bottom button{width:25%;border:0;background:none;color:var(--muted);font-size:11px}.bottom button b{display:block;font-size:19px;margin-bottom:2px}.bottom button.active{color:#fff}
+.page{display:none}.page.active{display:block}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.dow{color:var(--muted);font-size:10px;text-align:center;padding:4px}.day{min-height:50px;border:1px solid var(--line);border-radius:10px;padding:5px;background:#121217;font-size:12px}.day.muted{opacity:.35}.day.today{border-color:var(--pink)}.dots{display:flex;gap:2px;margin-top:7px}.dot{width:6px;height:6px;border-radius:50%}.mig{background:#ff6fb5}.anx{background:#c88cff}.alc{background:#ffcf6b}.caf{background:#8fd4ff}
+.select{width:100%;background:#15151a;color:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+.notice{border-left:3px solid var(--pink);padding:11px 12px;background:#1a1318;border-radius:10px;color:#ddd}
+.insight{padding:14px;border-radius:18px;background:linear-gradient(135deg,#251520,#16131a);border:1px solid #5d3148;margin:10px 0}.insight .big{font-size:22px;font-weight:700;margin:5px 0}
+textarea,input{font:inherit}.note{width:100%;min-height:80px;background:#111116;color:#fff;border:1px solid var(--line);border-radius:14px;padding:10px}
+button{cursor:pointer}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:end;z-index:10}.modal.open{display:flex}.sheet{width:100%;max-width:520px;margin:auto;background:#17171c;border:1px solid var(--line);border-radius:24px 24px 0 0;padding:18px}.options{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.opt{border:1px solid var(--line);background:#111116;color:#fff;border-radius:12px;padding:9px 12px}.opt.sel{background:#3a1b2c;border-color:var(--pink)}
+@media(min-width:700px){.bottom{position:sticky;top:0;border:1px solid var(--line);border-radius:20px;margin-top:10px;bottom:auto}.app{padding-bottom:30px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div><div class="sub">ЛИЧНЫЙ ТРЕКЕР · WHOOP HISTORY</div><h1 id="title">Сегодня</h1></div><div class="cat">🐈‍⬛</div></header>
+
+  <main id="today" class="page active">
+    <div class="card"><div class="row"><div><div class="sub">Доброе утро, Настя!</div><h2 id="todayDate">—</h2></div><span class="pill">WHOOP history</span></div></div>
+    <div class="grid">
+      <div class="card metric"><div class="label">Сон</div><div class="value" id="sleepVal">—</div><div class="sub" id="sleepPerf">—</div></div>
+      <div class="card metric"><div class="label">Recovery</div><div class="value accent" id="recoveryVal">—</div><div class="sub">из WHOOP</div></div>
+      <div class="card metric"><div class="label">HRV</div><div class="value" id="hrvVal">—</div><div class="sub">ms</div></div>
+      <div class="card metric"><div class="label">Пульс покоя</div><div class="value" id="rhrVal">—</div><div class="sub">bpm</div></div>
+    </div>
+    <div class="card"><div class="row"><h2>Нагрузка</h2><span class="pill" id="strainVal">—</span></div><div class="progress"><i id="strainBar" style="width:0%"></i></div><div class="sub" style="margin-top:8px">Day Strain · тренировки подтягиваются автоматически</div></div>
+    <div class="card"><div class="row"><h2>Что было вчера?</h2><span class="sub">быстрая отметка</span></div><div class="quick">
+      <button onclick="openLog('alcohol')">🍷 <b>Алкоголь</b><span>количество бокалов</span></button>
+      <button onclick="openLog('caffeine')">☕ <b>Кофе после обеда</b><span>количество кружек</span></button>
+      <button onclick="openLog('anxiety')">😵 <b>Тревожка</b><span>0–2 + длительность по желанию</span></button>
+      <button onclick="openLog('migraine')">🤕 <b>Мигрень</b><span>0–2 + лекарства</span></button>
+    </div></div>
+    <div class="card"><h2>Настя, держись</h2><div class="sub">Данные здесь не для оценки тебя, а чтобы лучше понять свой организм.</div></div>
+  </main>
+
+  <main id="journal" class="page">
+    <div class="card"><div class="row"><h2>Сентябрь 2026</h2><span class="pill">Календарь</span></div>
+      <div class="calendar" id="calendar"></div>
+      <div class="sub" style="margin-top:12px">🤕 мигрень · 😵 тревога · 🍷 алкоголь · ☕ кофеин</div>
+    </div>
+    <div class="card" id="selectedDay"><h2>Выбери день</h2><div class="sub">Тапни по дню, чтобы увидеть события.</div></div>
+  </main>
+
+  <main id="analytics" class="page">
+    <div class="card"><div class="row"><h2>Аналитика</h2><span class="pill">пока исследуем</span></div>
+      <div class="notice">Мы не делаем выводы по 2–3 наблюдениям. Чем меньше данных — тем осторожнее формулировка.</div>
+    </div>
+    <div id="insights"></div>
+    <div class="card"><h2>Исследуем связи</h2><div class="sub">Алкоголь → HRV / пульс во сне · недосып → Recovery · кофеин → сон · тревога → HRV / пульс · мигрень → физиология</div></div>
+  </main>
+
+  <main id="history" class="page">
+    <div class="card"><h2>История</h2><div class="sub">День целиком: сон, восстановление, нагрузка и ручные события.</div></div>
+    <div id="historyList"></div>
+  </main>
+</div>
+
+<nav class="bottom">
+<button class="active" onclick="showPage('today',this)"><b>◉</b>Сегодня</button>
+<button onclick="showPage('journal',this)"><b>▦</b>Журнал</button>
+<button onclick="showPage('analytics',this)"><b>✦</b>Аналитика</button>
+<button onclick="showPage('history',this)"><b>◷</b>История</button>
+</nav>
+
+<div class="modal" id="modal"><div class="sheet"><div class="row"><h2 id="modalTitle">Запись</h2><button class="opt" onclick="closeLog()">Закрыть</button></div><div id="modalBody"></div></div></div>
+
+<script>
+let DATA, manual=JSON.parse(localStorage.getItem('healthyManual')||'[]');
+const labels={alcohol:'Алкоголь',caffeine:'Кофе после обеда',anxiety:'Тревожка',migraine:'Мигрень'};
+const icons={alcohol:'🍷',caffeine:'☕',anxiety:'😵',migraine:'🤕'};
+fetch('data.json').then(r=>r.json()).then(d=>{DATA=d; render();});
+
+function dateOf(v){return new Date(v).toISOString().slice(0,10)}
+function latestPhys(){return DATA.physiologicalCycles.filter(x=>x['Cycle start time']).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))[0]}
+function latestSleep(){return DATA.sleeps.filter(x=>x['Asleep duration (min)']!=null).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))[0]}
+function render(){
+ const p=latestPhys(), s=latestSleep();
+ const mins=s?.['Asleep duration (min)']; document.getElementById('sleepVal').textContent=mins?`${Math.floor(mins/60)}:${String(Math.round(mins%60)).padStart(2,'0')}`:'—';
+ document.getElementById('sleepPerf').textContent=s?.['Sleep performance %']!=null?`Sleep Performance ${Math.round(s['Sleep performance %'])}%`:'—';
+ document.getElementById('recoveryVal').textContent=p?.['Recovery score %']!=null?Math.round(p['Recovery score %']):'—';
+ document.getElementById('hrvVal').textContent=p?.['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—';
+ document.getElementById('rhrVal').textContent=p?.['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—';
+ const st=p?.['Day Strain']; document.getElementById('strainVal').textContent=st!=null?Number(st).toFixed(1):'—'; document.getElementById('strainBar').style.width=st!=null?Math.min(100,st/21*100)+'%':'0%';
+ document.getElementById('todayDate').textContent=new Date(p?.['Cycle start time']||Date.now()).toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+ renderCalendar(); renderInsights(); renderHistory();
+}
+function journalMap(){
+ const m={}; for(const r of DATA.journal){if(!r.answeredYes)continue;(m[r.date]??=[]).push(r.category)} return m;
+}
+function renderCalendar(){
+ const root=document.getElementById('calendar'); root.innerHTML='';
+ ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(x=>{let d=document.createElement('div');d.className='dow';d.textContent=x;root.appendChild(d)});
+ const y=2026,mo=8, first=new Date(y,mo,1), last=new Date(y,mo+1,0), offset=(first.getDay()+6)%7, jm=journalMap();
+ for(let i=0;i<offset;i++){let d=document.createElement('div');d.className='day muted';root.appendChild(d)}
+ for(let n=1;n<=last.getDate();n++){let ds=`${y}-${String(mo+1).padStart(2,'0')}-${String(n).padStart(2,'0')}`;let d=document.createElement('button');d.className='day';d.textContent=n;d.onclick=()=>selectDay(ds);let cats=[...(jm[ds]||[]),...manual.filter(x=>x.date===ds).map(x=>x.category)];if(cats.length){let dots=document.createElement('div');dots.className='dots';[...new Set(cats)].forEach(c=>{let q=document.createElement('i');q.className='dot '+c.slice(0,3);dots.appendChild(q)});d.appendChild(dots)}root.appendChild(d)}
+}
+function selectDay(ds){
+ const cats=journalMap()[ds]||[], man=manual.filter(x=>x.date===ds), all=[...cats,...man.map(x=>x.category)];
+ document.getElementById('selectedDay').innerHTML=`<h2>${new Date(ds+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}</h2>`+
+ (all.length?all.map(c=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)"><span>${icons[c]} ${labels[c]}</span><span class="pill">${man.find(x=>x.category===c)?.detail||'WHOOP: было'}</span></div>`).join(''):'<div class="sub">Записей нет.</div>');
+}
+function renderInsights(){
+ const counts={}; for(const r of DATA.journal)if(r.answeredYes)counts[r.category]=(counts[r.category]||0)+1;
+ const map=[['alcohol','Алкоголь'],['caffeine','Кофеин'],['anxiety','Тревога'],['migraine','Мигрень']];
+ document.getElementById('insights').innerHTML=map.map(([k,l])=>`<div class="insight"><div>${icons[k]} ${l}</div><div class="big">${counts[k]||0} наблюдений</div><div class="sub">${(counts[k]||0)<10?'Пока недостаточно данных для надёжной связи.':'Данных уже достаточно, чтобы начать исследование связи — без причинных выводов.'}</div></div>`).join('');
+}
+function renderHistory(){
+ const arr=DATA.physiologicalCycles.slice().sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time'])).slice(0,14);
+ document.getElementById('historyList').innerHTML=arr.map(p=>`<div class="card"><div class="row"><b>${new Date(p['Cycle start time']).toLocaleDateString('ru-RU',{day:'numeric',month:'short'})}</b><span class="pill">Recovery ${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</span></div><div class="sub" style="margin-top:8px">HRV ${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'} ms · RHR ${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'} · Strain ${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</div></div>`).join('');
+}
+function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.getElementById('title').textContent={today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История'}[id]}
+function openLog(cat){
+ document.getElementById('modalTitle').textContent=icons[cat]+' '+labels[cat];
+ let body='';
+ if(cat==='alcohol')body=`<div class="sub">Сколько выпито?</div><div class="options" id="opts">${[0,1,2,3,4,5].map(n=>`<button class="opt" onclick="pick(this)">${n} ${n===1?'бокал':'бокалов'}</button>`).join('')}</div>`;
+ if(cat==='caffeine')body=`<div class="sub">Кофеин после обеда</div><div class="options">${[0,1,2,3,4].map(n=>`<button class="opt" onclick="pick(this)">${n} ${n===1?'кружка':'кружки'}</button>`).join('')}</div>`;
+ if(cat==='anxiety')body=`<div class="sub">Интенсивность</div><div class="options">${[['0','слегка тревожно'],['1','ощущения в теле, без паники'],['2','тяжёлый приступ']].map(a=>`<button class="opt" onclick="pick(this)">${a[0]} — ${a[1]}</button>`).join('')}</div><div class="sub">Длительность — необязательно</div><input class="select" placeholder="например, 40 минут">`;
+ if(cat==='migraine')body=`<div class="sub">Интенсивность</div><div class="options">${[['0','зачатки, таблетка до начала'],['1','суматриптан + ОКИ, приходилось поджимать голову'],['2','сильный приступ, тошнота, светобоязнь']].map(a=>`<button class="opt" onclick="pick(this)">${a[0]} — ${a[1]}</button>`).join('')}</div><div class="sub">Лекарства</div><div class="options"><button class="opt" onclick="pick(this)">Суматриптан</button><button class="opt" onclick="pick(this)">ОКИ</button></div>`;
+ body+=`<textarea class="note" placeholder="Комментарий — необязательно"></textarea><button class="opt" style="width:100%;margin-top:10px;background:#3a1b2c;border-color:#8b4165" onclick="saveLog('${cat}')">Сохранить</button>`;
+ document.getElementById('modalBody').innerHTML=body;document.getElementById('modal').classList.add('open');
+}
+function pick(el){el.classList.toggle('sel')}
+function closeLog(){document.getElementById('modal').classList.remove('open')}
+function saveLog(cat){manual.push({date:new Date().toISOString().slice(0,10),category:cat,detail:'ручная отметка'});localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();renderInsights()}
+</script>
+</body></html>
