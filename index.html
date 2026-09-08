@@ -44,7 +44,16 @@ textarea,input{font:inherit}.note{width:100%;min-height:80px;background:#111116;
     <div class="card metric"><div class="label">Шаги</div><div class="value" id="stepsVal">—</div><div class="sub">из Google Health</div></div>
     <div class="card metric"><div class="label">Дыхание</div><div class="value" id="respVal">—</div><div class="sub">дых/мин</div></div>
   </div>
-  <div class="card"><div class="row"><h2>Нагрузка</h2><span class="pill">—</span></div><div class="notice">Day Strain — метрика WHOOP. Google Health API её не отдаёт, поэтому мы её не подменяем.</div><div id="workouts" class="sub" style="margin-top:10px">Тренировки загружаются автоматически.</div></div>
+  <div class="card"><div class="row"><h2>Нагрузка</h2><span class="pill">Google Health</span></div>
+    <div class="grid" style="margin-top:10px">
+      <div class="metric"><div class="label">Activity Level</div><div class="value" id="activityLevelVal">—</div><div class="sub" id="activityLevelSub">минутные данные</div></div>
+      <div class="metric"><div class="label">HR-зоны</div><div class="value" id="hrZonesVal">—</div><div class="sub" id="hrZonesSub">время по зонам</div></div>
+      <div class="metric"><div class="label">Тренировки</div><div class="value" id="workoutTimeVal">—</div><div class="sub" id="workoutTimeSub">за день</div></div>
+      <div class="metric"><div class="label">Шаги</div><div class="value" id="loadStepsVal">—</div><div class="sub">из Google Health</div></div>
+    </div>
+    <div id="workouts" class="sub" style="margin-top:12px">Тренировки загружаются автоматически.</div>
+    <div class="sub" style="margin-top:12px">Healthy Strain пока не рассчитываем: сначала накопим данные и откалибруем собственную метрику.</div>
+  </div>
   <div class="card"><div class="row"><h2>Что было вчера?</h2><span class="sub">быстрая отметка</span></div><div class="quick">
     <button onclick="openLog('alcohol')">🍷 <b>Алкоголь</b><span>количество бокалов</span></button>
     <button onclick="openLog('caffeine')">☕ <b>Кофе после обеда</b><span>количество кружек</span></button>
@@ -136,6 +145,33 @@ function renderToday(){
   document.getElementById('respVal').textContent=d.respiratoryRate!=null?d.respiratoryRate.toFixed(1):'—';
   const ws=d.workouts||[];
   document.getElementById('workouts').innerHTML=ws.length?ws.map(w=>`🏃 ${esc(w.name||prettyType(w.type))}${w.durationMin!=null?' · '+Math.round(w.durationMin)+' мин':''}${w.calories!=null?' · '+Math.round(w.calories)+' ккал':''}`).join('<br>'):'Тренировок за этот день нет.';
+
+  // Google Health load metrics — показываем как отдельные метрики,
+  // не выдавая их за WHOOP Day Strain.
+  const levels=d.activityLevel||[];
+  const levelMinutes={SEDENTARY:0,LIGHTLY_ACTIVE:0,MODERATELY_ACTIVE:0,VERY_ACTIVE:0};
+  levels.forEach(x=>{ if(levelMinutes[x.type]!=null) levelMinutes[x.type]+=Number(x.durationMin||0); });
+  const levelOrder=['VERY_ACTIVE','MODERATELY_ACTIVE','LIGHTLY_ACTIVE','SEDENTARY'];
+  const dominant=levelOrder.find(x=>levelMinutes[x]>0);
+  const levelNames={
+    SEDENTARY:'Sedentary',
+    LIGHTLY_ACTIVE:'Lightly Active',
+    MODERATELY_ACTIVE:'Moderately Active',
+    VERY_ACTIVE:'Very Active'
+  };
+  document.getElementById('activityLevelVal').textContent=dominant?levelNames[dominant]:'—';
+  document.getElementById('activityLevelSub').textContent=levels.length?`${levels.length} мин. записей · активных ${Math.round(levelMinutes.LIGHTLY_ACTIVE+levelMinutes.MODERATELY_ACTIVE+levelMinutes.VERY_ACTIVE)} мин.`:'нет данных';
+
+  const zones=d.timeInHeartRateZone||[];
+  const zoneTotal=zones.reduce((sum,x)=>sum+Number(x.durationMin||0),0);
+  document.getElementById('hrZonesVal').textContent=zoneTotal?`${Math.round(zoneTotal)} мин`:'—';
+  document.getElementById('hrZonesSub').textContent=zones.length?zones.map(x=>`${x.zone||'зона'} ${Math.round(x.durationMin||0)} мин`).join(' · '):'нет данных';
+
+  const workoutTotal=ws.reduce((sum,w)=>sum+Number(w.durationMin||0),0);
+  document.getElementById('workoutTimeVal').textContent=workoutTotal?`${Math.round(workoutTotal)} мин`:'—';
+  document.getElementById('workoutTimeSub').textContent=ws.length?`${ws.length} ${ws.length===1?'тренировка':'тренировки'}`:'нет тренировок';
+
+  document.getElementById('loadStepsVal').textContent=d.steps!=null?d.steps.toLocaleString('ru-RU'):'—';
 }
 function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
