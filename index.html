@@ -20,8 +20,8 @@
 @media(min-width:700px){.bottom{position:sticky;top:10px;border:1px solid var(--line);border-radius:18px;margin-top:10px;bottom:auto}.app{padding-bottom:30px}}
 
 /* Refinements */
-.periodSummary{margin:10px 0}.periodSummary h3{margin:0 0 10px;font-size:15px}.summaryStats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.summaryStat{background:#111419;border:1px solid #292d34;border-radius:14px;padding:11px}.summaryStat b{display:block;font-size:18px}.summaryStat span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.daySummary{margin-top:10px}.detailBtn{width:100%;text-align:left;border:1px solid #30343b;background:#15181d;color:#fff;border-radius:15px;padding:12px;margin-top:8px}.quick button{min-height:92px}.quick .noneBtn{grid-column:1/-1;min-height:42px;text-align:center;color:var(--pink2);border-color:#6d3852}.eventRow{cursor:pointer}.analyticsDrill{border:1px solid #30343b;background:#15181d;color:#fff;border-radius:15px;padding:12px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left}.historySource{margin-bottom:10px}.historySource b{color:#fff}.loadNote{color:var(--muted);font-size:11px;margin-top:10px}
-.modalNone{margin-top:12px;width:100%}\n</style>
+.periodSummary{margin:10px 0}.periodSummary h3{margin:0 0 10px;font-size:15px}.summaryStats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.summaryStat{background:#111419;border:1px solid #292d34;border-radius:14px;padding:11px}.summaryStat b{display:block;font-size:18px}.summaryStat span{display:block;color:var(--muted);font-size:10px;margin-top:2px}.daySummary{margin-top:10px}.detailBtn{width:100%;text-align:left;border:1px solid #30343b;background:#15181d;color:#fff;border-radius:15px;padding:12px;margin-top:8px}.quick button{min-height:92px}.quick .noneBtn{grid-column:1/-1;min-height:42px;text-align:center;color:var(--pink2);border-color:#6d3852}.eventRow{cursor:pointer}.analyticsDrill{border:1px solid #30343b;background:#15181d;color:#fff;border-radius:15px;padding:12px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left}.historySource{margin-bottom:10px}.historySource b{color:#fff}.loadNote{color:var(--muted);font-size:11px;margin-top:10px}.sourceHead{display:flex;justify-content:space-between;align-items:center;gap:10px}.refreshBtn{border:1px solid #3a3e46;background:#1a1d23;color:#f7f5f7;border-radius:12px;padding:7px 10px;font-size:11px}.refreshBtn:disabled{opacity:.55}.nutritionGrid{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:8px;margin-top:12px}.nutritionMetric{background:#15181d;border:1px solid #2b2f36;border-radius:14px;padding:10px}.nutritionMetric .n{font-size:17px;font-weight:700}.nutritionMetric .k{font-size:10px;color:var(--muted);margin-top:2px}.progress{height:6px;background:#2b2f36;border-radius:99px;overflow:hidden;margin-top:10px}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),#c38dff);border-radius:99px}.nutritionRows{display:grid;gap:7px;margin-top:10px}.nutritionRow{display:flex;justify-content:space-between;gap:10px;font-size:12px}
+.modalNone{margin-top:12px;width:100%}</style>
 </head>
 <body>
 <div class="app">
@@ -38,12 +38,28 @@
   </div>
 
   <div class="sectionTitle"><h2>Активность</h2><span class="muted">Google Health</span></div>
-  <section class="card load"><div class="loadTop"><div><div class="loadMain" id="loadHeadline">—</div><div class="sub">собственная Healthy Strain появится после накопления данных</div></div><span class="badge">не WHOOP Strain</span></div><div class="loadBar"><i id="loadBar"></i></div><div class="loadGrid">
+  <section class="card load"><div class="sourceHead"><div><div class="loadMain" id="loadHeadline">—</div><div class="sub">собственная Healthy Strain появится после накопления данных</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><span class="badge">не WHOOP Strain</span><button class="refreshBtn" id="googleRefreshBtn" onclick="refreshGoogle()">↻ Обновить данные</button></div></div><div class="loadBar"><i id="loadBar"></i></div><div class="loadGrid">
     <div class="loadItem"><div class="k">Activity Level</div><div class="v" id="activityLevelVal">—</div><div class="sub" id="activityLevelSub">—</div></div>
     <div class="loadItem"><div class="k">HR-зоны</div><div class="v" id="hrZonesVal">—</div><div class="sub" id="hrZonesSub">—</div></div>
     <div class="loadItem"><div class="k">Тренировки</div><div class="v" id="workoutTimeVal">—</div><div class="sub" id="workoutTimeSub">—</div></div>
     <div class="loadItem"><div class="k">Шаги</div><div class="v" id="loadStepsVal">—</div><div class="sub">двигательная активность</div></div>
   </div><div id="workouts" class="sub" style="margin-top:12px">Тренировки загружаются автоматически.</div><div class="loadNote">Уровень активности — классификация Google Health, а не аналог Strain. Он может быть высоким даже без тренировки, если было много движения.</div></section>
+
+  <div class="sectionTitle"><h2>Питание</h2><span class="muted">FatSecret</span></div>
+  <section class="card">
+    <div class="sourceHead">
+      <div><div class="loadMain" id="nutritionKcal">—</div><div class="sub" id="nutritionKcalSub">сегодня · FatSecret</div></div>
+      <button class="refreshBtn" id="fatsecretRefreshBtn" onclick="refreshFatSecretToday()">↻ Обновить питание</button>
+    </div>
+    <div class="progress"><i id="nutritionCalBar"></i></div>
+    <div class="sub" id="nutritionStatus">Загружаем данные…</div>
+    <div class="nutritionGrid">
+      <div class="nutritionMetric"><div class="n" id="nutritionProtein">—</div><div class="k">Белки / 100 г</div></div>
+      <div class="nutritionMetric"><div class="n" id="nutritionFat">—</div><div class="k">Жиры / 58 г</div></div>
+      <div class="nutritionMetric"><div class="n" id="nutritionCarbs">—</div><div class="k">Углеводы / 180 г</div></div>
+      <div class="nutritionMetric"><div class="n" id="nutritionMeals">—</div><div class="k">приёмов</div></div>
+    </div>
+  </section>
 
   <div class="sectionTitle"><h2>Что было вчера?</h2><span class="muted">быстрая отметка</span></div>
   <section class="quick">
@@ -87,17 +103,26 @@
 
 <script>
 const BACKEND='https://script.google.com/macros/s/AKfycbwUh9XEyN14Ui3lVHdFxf9Dnqb3eJG29ZO3kZD2prhyYe10GXJrNSCE9RurPBEw1p9BRA/exec';
-let GOOGLE=null,WHOOP=null,manual=JSON.parse(localStorage.getItem('healthyManual')||'[]');
+let GOOGLE=null,WHOOP=null,FATSECRET_DAYS={},manual=JSON.parse(localStorage.getItem('healthyManual')||'[]');
+const NUTRITION_GOALS={calories:1650,protein:100,fat:58,carbohydrate:180};let googleUpdatedAt=null,fatsecretUpdatedAt=null;
 const labels={alcohol:'Алкоголь',caffeine:'Кофеин после обеда',anxiety:'Тревожность',migraine:'Мигрень'};
 const icons={alcohol:'🍷',caffeine:'☕',anxiety:'🌸',migraine:'🤕'};
 let viewDate=new Date();let currentType=null,currentState={};let analyticsDays=7;
 function loadJsonp(url){return new Promise((resolve,reject)=>{const cb='healthyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');let done=false;function clean(){if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(_){}if(s.parentNode)s.parentNode.removeChild(s)}const timer=setTimeout(()=>{clean();reject(new Error('timeout'))},20000);window[cb]=d=>{clean();if(d&&d.ok===false)reject(new Error(d.error||'Google Health error'));else resolve(d)};s.async=true;s.onerror=()=>{clean();reject(new Error('script load error'))};s.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.appendChild(s)})}
-async function boot(){try{WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json())}catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}try{GOOGLE=await loadJsonp(BACKEND+'?action=data&days=60');if(!GOOGLE||!GOOGLE.ok)throw new Error('Google Health error');document.getElementById('liveStatus').textContent='свежие данные';document.getElementById('liveBadge').textContent='Google Health'}catch(e){console.error(e);GOOGLE=null;document.getElementById('liveStatus').textContent='нет связи';document.getElementById('liveBadge').textContent='offline'}renderAll()}
+async function boot(){try{WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json())}catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}try{GOOGLE=await loadJsonp(BACKEND+'?action=data&days=60');if(!GOOGLE||!GOOGLE.ok)throw new Error('Google Health error');googleUpdatedAt=new Date();document.getElementById('liveStatus').textContent='свежие данные';document.getElementById('liveBadge').textContent='Google Health'}catch(e){console.error(e);GOOGLE=null;document.getElementById('liveStatus').textContent='нет связи';document.getElementById('liveBadge').textContent='offline'}await refreshFatSecretToday(true);renderAll()}
+async function refreshGoogle(){const btn=document.getElementById('googleRefreshBtn');if(btn){btn.disabled=true;btn.textContent='↻ Обновляю…'}try{const data=await loadJsonp(BACKEND+'?action=data&days=60');if(!data||!data.ok)throw new Error('Google Health error');GOOGLE=data;googleUpdatedAt=new Date();document.getElementById('liveStatus').textContent='обновлено '+timeText(googleUpdatedAt);document.getElementById('liveBadge').textContent='Google Health';renderAll()}catch(e){console.error(e);document.getElementById('liveStatus').textContent='ошибка обновления'}finally{if(btn){btn.disabled=false;btn.textContent='↻ Обновить данные'}}}
+async function refreshFatSecretToday(silent=false){const btn=document.getElementById('fatsecretRefreshBtn');if(!silent&&btn){btn.disabled=true;btn.textContent='↻ Обновляю…'}try{const ds=todayStr();const data=await loadJsonp(BACKEND+'?action=fatsecret_data&date='+encodeURIComponent(ds));if(!data||!data.ok)throw new Error('FatSecret error');FATSECRET_DAYS[ds]=normalizeFatSecretClient(data);fatsecretUpdatedAt=new Date();renderNutritionToday();if(typeof renderJournalNutrition==='function')renderJournalNutrition(document.getElementById('selectedDay')?.dataset?.date||ds)}catch(e){console.error(e);const el=document.getElementById('nutritionStatus');if(el)el.textContent='Не удалось получить данные FatSecret.'}finally{if(!silent&&btn){btn.disabled=false;btn.textContent='↻ Обновить питание'}}}
 function days(){return Object.values(GOOGLE?.days||{}).sort((a,b)=>String(b.date).localeCompare(String(a.date)))}
 function latest(){return days()[0]||null}
 function fmtDate(ds){return new Date(ds+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
 function minsText(m){if(m==null)return '—';return `${Math.floor(m/60)} ч ${Math.round(m%60)} мин`}
 function shortMins(m){if(m==null)return '—';return `${Math.floor(m/60)}:${String(Math.round(m%60)).padStart(2,'0')}`}
+function todayStr(){return new Date().toISOString().slice(0,10)}
+function timeText(d){return d?d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}):'—'}
+function normalizeFatSecretClient(data){const raw=data.data||{};const entries=raw.food_entries?.food_entry||[];const arr=Array.isArray(entries)?entries:[entries];const num=v=>v==null||v===''?null:Number(v);const rows=arr.filter(Boolean).map(e=>({foodEntryId:e.food_entry_id||null,foodId:e.food_id||null,servingId:e.serving_id||null,meal:e.meal||null,name:e.name||e.description||'—',description:e.description||null,quantity:num(e.number_of_units),calories:num(e.calories),protein:num(e.protein),fat:num(e.fat),carbohydrate:num(e.carbohydrate)}));const sum=k=>rows.reduce((a,e)=>a+(Number(e[k])||0),0);return {date:data.date||null,entries:rows,totals:{calories:sum('calories'),protein:sum('protein'),fat:sum('fat'),carbohydrate:sum('carbohydrate')},entryCount:rows.length}}
+function renderNutritionToday(){const ds=todayStr(),d=FATSECRET_DAYS[ds],k=document.getElementById('nutritionKcal');if(!k)return;if(!d){k.textContent='—';document.getElementById('nutritionStatus').textContent='Нет данных FatSecret';return}const t=d.totals||{};k.textContent=t.calories!=null?Math.round(t.calories)+' ккал':'—';document.getElementById('nutritionKcalSub').textContent='сегодня · цель '+NUTRITION_GOALS.calories+' ккал';document.getElementById('nutritionProtein').textContent=t.protein!=null?Math.round(t.protein*10)/10+' г':'—';document.getElementById('nutritionFat').textContent=t.fat!=null?Math.round(t.fat*10)/10+' г':'—';document.getElementById('nutritionCarbs').textContent=t.carbohydrate!=null?Math.round(t.carbohydrate*10)/10+' г':'—';document.getElementById('nutritionMeals').textContent=d.entryCount??0;const pct=t.calories!=null?Math.min(100,t.calories/NUTRITION_GOALS.calories*100):0;document.getElementById('nutritionCalBar').style.width=pct+'%';document.getElementById('nutritionStatus').textContent=fatsecretUpdatedAt?'обновлено '+timeText(fatsecretUpdatedAt):'данные получены из FatSecret'}
+function renderJournalNutrition(ds){const root=document.getElementById('selectedDay');if(!root)return;root.dataset.date=ds;let old=document.getElementById('journalNutrition');if(!old){old=document.createElement('div');old.id='journalNutrition';root.appendChild(old)}const d=FATSECRET_DAYS[ds];if(!d){old.innerHTML='<div class="sectionTitle"><h2>Питание</h2><span class="muted">FatSecret</span></div><section class="card"><div class="sourceHead"><div><b>Питание не загружено</b><div class="sub">Значения не сохраняются в журнале</div></div><button class="refreshBtn" onclick="loadFatSecretDay(&quot;'+ds+'&quot;,this)">↻ Загрузить питание</button></div></section>';return}const t=d.totals||{};old.innerHTML='<div class="sectionTitle"><h2>Питание</h2><span class="muted">FatSecret</span></div><section class="card"><div class="sourceHead"><div><b>'+Math.round(t.calories||0)+' ккал</b><div class="sub">'+d.entryCount+' записей</div></div><button class="refreshBtn" onclick="loadFatSecretDay(&quot;'+ds+'&quot;,this)">↻ Обновить питание</button></div><div class="nutritionRows"><div class="nutritionRow"><span>Белки</span><span>'+(t.protein!=null?Math.round(t.protein*10)/10+' г':'—')+'</span></div><div class="nutritionRow"><span>Жиры</span><span>'+(t.fat!=null?Math.round(t.fat*10)/10+' г':'—')+'</span></div><div class="nutritionRow"><span>Углеводы</span><span>'+(t.carbohydrate!=null?Math.round(t.carbohydrate*10)/10+' г':'—')+'</span></div></div></section>'}
+async function loadFatSecretDay(ds,btn){if(btn){btn.disabled=true;btn.textContent='↻ Загружаю…'}try{const data=await loadJsonp(BACKEND+'?action=fatsecret_data&date='+encodeURIComponent(ds));if(!data||!data.ok)throw new Error('FatSecret error');FATSECRET_DAYS[ds]=normalizeFatSecretClient(data);renderJournalNutrition(ds)}catch(e){console.error(e);alert('Не удалось получить данные FatSecret.')}finally{if(btn){btn.disabled=false;btn.textContent='↻ Обновить питание'}}}
 function renderToday(){
 const d=latest();
 if(!d){document.getElementById('todayDate').textContent='Нет данных Google Health';return}
@@ -124,7 +149,7 @@ document.getElementById('hrZonesSub').textContent=zones.length?zones.map(x=>`${x
 const wt=ws.reduce((a,w)=>a+Number(w.durationMin||0),0);
 document.getElementById('workoutTimeVal').textContent=wt?`${Math.round(wt)} мин`:'—';
 document.getElementById('workoutTimeSub').textContent=ws.length?`${ws.length} ${ws.length===1?'тренировка':'тренировки'}`:'нет тренировок';
-document.getElementById('loadStepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';
+document.getElementById('loadStepsVal').textContent=d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—';renderNutritionToday();
 document.getElementById('loadHeadline').textContent=dominant?names[dominant]:'Нет данных';
 const scoreLoad=Math.min(100,Math.round((activeMin/180)*70+(zt/120)*30));
 document.getElementById('loadBar').style.width=(isFinite(scoreLoad)?scoreLoad:0)+'%';
@@ -208,8 +233,7 @@ function selectDay(ds){
 const events=allEventsForDate(ds),root=document.getElementById('selectedDay');
 let rows='';
 for(const e of events){
-const c=e.category;
-let val='';
+const c=e.category;let val='';
 if(c==='alcohol')val=e.value!=null?`${e.value} бок.`:'отмечено';
 else if(c==='caffeine')val=e.value!=null?`${e.value} чаш.`:'отмечено';
 else if(c==='anxiety')val=e.value!=null?`уровень ${e.value}`:'отмечено';
@@ -218,7 +242,9 @@ if(e.detail)val+=(val?' · ':'')+e.detail;
 rows+=`<button class="detailBtn" onclick="openAnalyticsEventForDay('${c}','${ds}')"><div style="display:flex;justify-content:space-between;gap:10px"><b>${labels[c]||c}</b><span class="eventValue">${esc(val)}</span></div></button>`
 }
 if(!rows)rows='<div class="empty">Событий нет.</div>';
-root.innerHTML=`<div class="selectedHead"><h3 style="margin:0">${fmtDate(ds)}</h3><span class="badge">${events.length} событий</span></div><div class="daySummary sub">${events.length?'Короткая сводка по отмеченным пунктам за день.':'За этот день ничего не отмечено.'}</div>${rows}`
+root.dataset.date=ds;
+root.innerHTML=`<div class="selectedHead"><h3 style="margin:0">${fmtDate(ds)}</h3><span class="badge">${events.length} событий</span></div><div class="daySummary sub">${events.length?'Короткая сводка по отмеченным пунктам за день.':'За этот день ничего не отмечено.'}</div>${rows}`;
+renderJournalNutrition(ds);
 }
 function openAnalyticsEventForDay(type,ds){
 const e=allEventsForDate(ds).find(x=>x.category===type);
