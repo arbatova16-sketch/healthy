@@ -33,6 +33,14 @@ body{background:radial-gradient(ellipse at 50% -15%,#17212a 0,#090c10 42%,#05070
 .detailPage .toolbar h2,.toolbar h2{letter-spacing:.5px}.card,.detailCard,.detailKpi{background:linear-gradient(140deg,#171d24,#10151b);border-color:#29313a;box-shadow:0 8px 22px #0003}.badge{background:#151c23;border-color:#2e3944;color:#aeb9c5}
 @media(max-width:380px){.scoreRing{width:178px;height:178px}.scoreRing strong{font-size:56px}.whoopRow{gap:9px;padding:11px}.whoopRowIcon{flex-basis:40px;width:40px;height:40px}.whoopRowStat{min-width:57px}.whoopRowStat strong{font-size:19px}}
 
+
+.dateArrow{border:0;background:transparent;color:#d5dce4;font-size:29px;font-weight:200;width:34px;height:38px;cursor:pointer}
+.reminderCard{border:1px solid #303741;background:linear-gradient(140deg,#171d24,#10151b);border-radius:17px;padding:13px;margin:10px 0}
+.reminderHead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.reminderHead b{font-size:12px;letter-spacing:.5px}
+.reminderHead small{display:block;color:#9ba3ad;font-size:10px;margin-top:4px;line-height:1.4}
+.reminderButton{border:1px solid #56616e;background:#252d36;color:#f4f7fa;border-radius:20px;padding:9px 12px;font-size:11px;white-space:nowrap}
+.reminderStatus{font-size:10px;color:#9ba3ad;margin-top:8px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -40,7 +48,7 @@ body{background:radial-gradient(ellipse at 50% -15%,#17212a 0,#090c10 42%,#05070
 <header class="whoopTop"><div class="whoopUser">◯</div><div class="whoopBrand">HEALTHY</div><div class="whoopDevice"><span class="deviceGlyph">▯</span><span id="liveStatus">●</span></div></header>
 
 <main id="today" class="page active">
-  <div class="whoopDate"><span>‹</span><div><b id="todayDate">Загружаем данные…</b><small id="liveBadge">GOOGLE HEALTH</small></div><span>›</span></div>
+  <div class="whoopDate"><button class="dateArrow" aria-label="Предыдущий день" onclick="changeDashboardDay(-1)">‹</button><div><b id="todayDate">Загружаем данные…</b><small id="liveBadge">GOOGLE HEALTH</small></div><button class="dateArrow" aria-label="Следующий день" onclick="changeDashboardDay(1)">›</button></div>
   <section class="scoreHero"><div class="scoreRing" id="homeScoreRing"><div><small>SLEEP SCORE</small><strong id="homeSleepScore">—</strong><em>/ 100</em></div></div><div class="scoreCaption" id="homeScoreCaption">ПОСЛЕДНЯЯ НОЧЬ</div></section>
   <div class="whoopList">
     <button class="whoopRow" onclick="openDetail('sleepDetail','Сон')"><span class="whoopRowIcon sleepIcon">☾</span><span class="whoopRowMain"><b>СОН</b><small id="homeSleepSub">—</small></span><span class="whoopRowStat"><strong id="homeSleepEff">—</strong><small>эффект.</small></span><span class="whoopChevron">›</span></button>
@@ -56,6 +64,10 @@ body{background:radial-gradient(ellipse at 50% -15%,#17212a 0,#090c10 42%,#05070
 
 <main id="journal" class="page">
   <div class="toolbar"><h2>Журнал</h2><button class="more">•••</button></div>
+  <section class="reminderCard">
+    <div class="reminderHead"><div><b>НАПОМИНАНИЕ О ЖУРНАЛЕ · 10:00</b><small>Напомнить утром отметить вчерашний день</small></div><button class="reminderButton" id="reminderButton" onclick="enableJournalReminder()">Включить</button></div>
+    <div class="reminderStatus" id="reminderStatus">Для напоминания при закрытом приложении потребуется отдельный push-сервер.</div>
+  </section>
   <div class="switch" id="journalSwitch"><button class="active" onclick="setJournalView('month',this)">Месяц</button><button onclick="setJournalView('week',this)">Неделя</button><button onclick="setJournalView('year',this)">Год</button></div>
   <section id="journalSummary" class="card periodSummary"></section>
   <section class="card" id="journalCalendar"><div class="month"><button class="arrow" onclick="changeMonth(-1)">‹</button><strong id="monthTitle">—</strong><button class="arrow" onclick="changeMonth(1)">›</button></div><div class="calendar" id="calendar"></div><div class="legend"><span><i class="dot mig"></i> Мигрень</span><span><i class="dot anx"></i> Тревожность</span><span><i class="dot alc"></i> Алкоголь</span><span><i class="dot caf"></i> Кофеин</span><span><i class="dot cycle"></i> Цикл</span></div></section>
@@ -92,6 +104,7 @@ let GOOGLE=null,WHOOP=null,NUTRITION=null,manual=JSON.parse(localStorage.getItem
 const labels={alcohol:'Алкоголь',caffeine:'Кофеин после обеда',anxiety:'Тревожность',migraine:'Мигрень'};
 const icons={alcohol:'🍷',caffeine:'☕',anxiety:'🌸',migraine:'🤕'};
 let viewDate=new Date();let currentType=null,currentState={};let analyticsDays=7;
+let selectedDashboardDate=null;const nutritionCache={};let reminderTimer=null;
 
 function openHealthyDb(){
   return new Promise((resolve,reject)=>{
@@ -150,6 +163,25 @@ function dateShift(ds,offset){
 function todayLocalISO(){
   const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+function shiftDate(ds,offset){
+ const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+offset);
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function changeDashboardDay(delta){
+ const base=selectedDashboardDate||latest()?.date||todayLocalISO(),next=shiftDate(base,delta);
+ if(next>todayLocalISO())return;
+ selectedDashboardDate=next;renderToday();
+ loadNutritionForDate(next).then(()=>{renderToday();renderNutritionDetail()});
+}
+async function loadNutritionForDate(ds){
+ if(!ds)return null;
+ if(Object.prototype.hasOwnProperty.call(nutritionCache,ds)){NUTRITION=nutritionCache[ds];return NUTRITION}
+ try{
+  const result=await loadJsonp(BACKEND+'?action=fatsecret_range&startDate='+encodeURIComponent(ds)+'&endDate='+encodeURIComponent(ds),45000);
+  nutritionCache[ds]=result;NUTRITION=result;return result;
+ }catch(e){console.warn('FatSecret unavailable for '+ds,e);nutritionCache[ds]=null;NUTRITION=null;return null}
+}
+
 function loadJsonp(url,timeoutMs=90000){
   return new Promise((resolve,reject)=>{
     const cb='healthyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');
@@ -204,22 +236,34 @@ async function boot(){
     if(!hasCache)GOOGLE=null;
     renderAll();
   }
-  try{
-    const ds=latest()?.date||todayLocalISO();
-    NUTRITION=await loadJsonp(BACKEND+'?action=fatsecret_range&startDate='+encodeURIComponent(ds)+'&endDate='+encodeURIComponent(ds),45000);
-  }catch(e){console.warn('FatSecret nutrition unavailable',e);NUTRITION=null}
-  renderAll();
+  selectedDashboardDate=latest()?.date||todayLocalISO();
+  await loadNutritionForDate(selectedDashboardDate);
+  renderAll();updateReminderUi();startReminderWatcher();
 }
 function days(){return Object.values(GOOGLE?.days||{}).sort((a,b)=>String(b.date).localeCompare(String(a.date)))}
 function latest(){return days()[0]||null}
 function fmtDate(ds){return new Date(ds+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
 function minsText(m){if(m==null)return '—';return `${Math.floor(m/60)} ч ${Math.round(m%60)} мин`}
 function shortMins(m){if(m==null)return '—';return `${Math.floor(m/60)}:${String(Math.round(m%60)).padStart(2,'0')}`}
-function nutritionDay(){const ds=latest()?.date;return ds?NUTRITION?.days?.[ds]||null:null}
-function journalCountToday(){const ds=latest()?.date||new Date().toISOString().slice(0,10);return allEventsForDate(ds).length}
+function nutritionDay(){const ds=selectedDashboardDate||latest()?.date;return ds?(nutritionCache[ds]?.days?.[ds]||NUTRITION?.days?.[ds]||null):null}
+function journalCountToday(){const ds=selectedDashboardDate||latest()?.date||todayLocalISO();return allEventsForDate(ds).length}
 function renderToday(){
-const d=latest();if(!d){document.getElementById('todayDate').textContent='Нет данных';document.getElementById('homeScoreCaption').textContent='НЕТ ДАННЫХ';return}
-document.getElementById('todayDate').textContent=fmtDate(d.date);
+const ds=selectedDashboardDate||latest()?.date||todayLocalISO(),d=GOOGLE?.days?.[ds]||null;
+document.getElementById('todayDate').textContent=fmtDate(ds);
+if(!d){
+ document.getElementById('homeSleepScore').textContent='—';
+ document.getElementById('homeSleepSub').textContent='Нет данных за этот день';
+ document.getElementById('homeSleepEff').textContent='—';
+ document.getElementById('homeSteps').textContent='—';
+ document.getElementById('homeActivitySub').textContent='—';
+ document.getElementById('homeCalories').textContent='—';
+ document.getElementById('homeNutritionSub').textContent='Нет данных за выбранный день';
+ document.getElementById('homeJournalCount').textContent=journalCountToday();
+ document.getElementById('homeJournalSub').textContent='записей';
+ document.getElementById('homeScoreCaption').textContent='НЕТ ДАННЫХ ЗА ЭТОТ ДЕНЬ';
+ document.getElementById('homeScoreRing').style.setProperty('--score','0deg');
+ renderSleepDetail();renderActivityDetail();renderNutritionDetail();return;
+}
 const score=d.sleepScore ?? d.sleep?.score ?? null;const sleepMin=d.sleep?.durationMin??null;const eff=d.sleep?.efficiencyPct??d.sleep?.sleepEfficiencyPct??null;
 document.getElementById('homeSleepScore').textContent=score!=null?Math.round(score):'—';
 document.getElementById('homeSleepSub').textContent=minsText(sleepMin);
@@ -229,8 +273,8 @@ const ws=d.workouts||[],levels=d.activityLevel||[],lm={SEDENTARY:0,LIGHTLY_ACTIV
 const n=nutritionDay(),tot=n?.totals||{};const kcal=tot.calories!=null?Number(tot.calories):null;document.getElementById('homeCalories').textContent=kcal!=null?Math.round(kcal)+' ккал':'—';document.getElementById('homeNutritionSub').textContent=kcal!=null?'Б '+Math.round(tot.protein||0)+' · Ж '+Math.round(tot.fat||0)+' · У '+Math.round(tot.carbohydrate||0):'FatSecret не загрузился';
 document.getElementById('homeJournalCount').textContent=journalCountToday();document.getElementById('homeJournalSub').textContent=journalCountToday()===1?'запись':'записей';
 renderSleepDetail();renderActivityDetail();renderNutritionDetail();}
-function renderSleepDetail(){const d=latest(),s=d?.sleep;if(!d||!s){document.getElementById('sleepDetailContent').innerHTML='<div class="empty">Нет данных сна.</div>';return}const score=d.sleepScore??s.score??null;document.getElementById('sleepDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Sleep Score</div><div class="v">${score!=null?Math.round(score):'—'} / 100</div></div><div class="detailKpi"><div class="k">Эффективность</div><div class="v">${(s.efficiencyPct??s.sleepEfficiencyPct)!=null?Number(s.efficiencyPct??s.sleepEfficiencyPct).toFixed(1)+'%':'—'}</div></div><div class="detailKpi"><div class="k">Сон</div><div class="v">${minsText(s.durationMin)}</div></div><div class="detailKpi"><div class="k">В постели</div><div class="v">${minsText(s.inBedDurationMin??s.timeInBedMin)}</div></div></section><section class="detailCard"><h3>Структура сна</h3><div class="detailRow"><span>Deep</span><b>${s.deepMin!=null?Math.round(s.deepMin)+' мин':'—'}</b></div><div class="detailRow"><span>REM</span><b>${s.remMin!=null?Math.round(s.remMin)+' мин':'—'}</b></div><div class="detailRow"><span>Light</span><b>${s.lightMin!=null?Math.round(s.lightMin)+' мин':'—'}</b></div><div class="detailRow"><span>Awake</span><b>${s.awakeMin!=null?Math.round(s.awakeMin)+' мин':'—'}</b></div></section><section class="detailCard"><h3>Оценка Healthy</h3><div class="detailMuted">Наш прозрачный Sleep Score v2 калиброван по твоим 4 известным Google Score. Это не формула Google.</div></section>`}
-function renderActivityDetail(){const d=latest();if(!d){return}const ws=d.workouts||[],levels=d.activityLevel||[],zones=d.timeInHeartRateZone||[];const mins=levels.reduce((a,x)=>a+Number(x.durationMin||0),0);const active=levels.filter(x=>x.type!=='SEDENTARY').reduce((a,x)=>a+Number(x.durationMin||0),0);const zt=zones.reduce((a,x)=>a+Number(x.durationMin||0),0);document.getElementById('activityDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Шаги</div><div class="v">${d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—'}</div></div><div class="detailKpi"><div class="k">Активные минуты</div><div class="v">${Math.round(active)}</div></div><div class="detailKpi"><div class="k">HR-зоны</div><div class="v">${Math.round(zt)} мин</div></div><div class="detailKpi"><div class="k">Тренировки</div><div class="v">${ws.length}</div></div></section><section class="detailCard"><h3>Активность за день</h3><div class="detailBar"><i style="width:${Math.min(100,active/180*100)}%"></i></div><div class="detailMuted" style="margin-top:8px">${Math.round(active)} из условных 180 активных минут</div></section><section class="detailCard"><h3>Тренировки</h3>${ws.length?ws.map(w=>`<div class="detailRow"><span>${esc(w.name||prettyType(w.type))}</span><b>${w.durationMin!=null?Math.round(w.durationMin)+' мин':'—'}</b></div>`).join(''):'<div class="empty">Тренировок за этот день нет.</div>'}</section>`}
+function renderSleepDetail(){const d=GOOGLE?.days?.[selectedDashboardDate||latest()?.date],s=d?.sleep;if(!d||!s){document.getElementById('sleepDetailContent').innerHTML='<div class="empty">Нет данных сна.</div>';return}const score=d.sleepScore??s.score??null;document.getElementById('sleepDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Sleep Score</div><div class="v">${score!=null?Math.round(score):'—'} / 100</div></div><div class="detailKpi"><div class="k">Эффективность</div><div class="v">${(s.efficiencyPct??s.sleepEfficiencyPct)!=null?Number(s.efficiencyPct??s.sleepEfficiencyPct).toFixed(1)+'%':'—'}</div></div><div class="detailKpi"><div class="k">Сон</div><div class="v">${minsText(s.durationMin)}</div></div><div class="detailKpi"><div class="k">В постели</div><div class="v">${minsText(s.inBedDurationMin??s.timeInBedMin)}</div></div></section><section class="detailCard"><h3>Структура сна</h3><div class="detailRow"><span>Deep</span><b>${s.deepMin!=null?Math.round(s.deepMin)+' мин':'—'}</b></div><div class="detailRow"><span>REM</span><b>${s.remMin!=null?Math.round(s.remMin)+' мин':'—'}</b></div><div class="detailRow"><span>Light</span><b>${s.lightMin!=null?Math.round(s.lightMin)+' мин':'—'}</b></div><div class="detailRow"><span>Awake</span><b>${s.awakeMin!=null?Math.round(s.awakeMin)+' мин':'—'}</b></div></section><section class="detailCard"><h3>Оценка Healthy</h3><div class="detailMuted">Наш прозрачный Sleep Score v2 калиброван по твоим 4 известным Google Score. Это не формула Google.</div></section>`}
+function renderActivityDetail(){const d=GOOGLE?.days?.[selectedDashboardDate||latest()?.date];if(!d){return}const ws=d.workouts||[],levels=d.activityLevel||[],zones=d.timeInHeartRateZone||[];const mins=levels.reduce((a,x)=>a+Number(x.durationMin||0),0);const active=levels.filter(x=>x.type!=='SEDENTARY').reduce((a,x)=>a+Number(x.durationMin||0),0);const zt=zones.reduce((a,x)=>a+Number(x.durationMin||0),0);document.getElementById('activityDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Шаги</div><div class="v">${d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—'}</div></div><div class="detailKpi"><div class="k">Активные минуты</div><div class="v">${Math.round(active)}</div></div><div class="detailKpi"><div class="k">HR-зоны</div><div class="v">${Math.round(zt)} мин</div></div><div class="detailKpi"><div class="k">Тренировки</div><div class="v">${ws.length}</div></div></section><section class="detailCard"><h3>Активность за день</h3><div class="detailBar"><i style="width:${Math.min(100,active/180*100)}%"></i></div><div class="detailMuted" style="margin-top:8px">${Math.round(active)} из условных 180 активных минут</div></section><section class="detailCard"><h3>Тренировки</h3>${ws.length?ws.map(w=>`<div class="detailRow"><span>${esc(w.name||prettyType(w.type))}</span><b>${w.durationMin!=null?Math.round(w.durationMin)+' мин':'—'}</b></div>`).join(''):'<div class="empty">Тренировок за этот день нет.</div>'}</section>`}
 function renderNutritionDetail(){const n=nutritionDay(),t=n?.totals||{};document.getElementById('nutritionDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Калории</div><div class="v">${t.calories!=null?Math.round(t.calories)+' ккал':'—'}</div></div><div class="detailKpi"><div class="k">Белок</div><div class="v">${t.protein!=null?Math.round(t.protein)+' г':'—'}</div></div><div class="detailKpi"><div class="k">Жиры</div><div class="v">${t.fat!=null?Math.round(t.fat)+' г':'—'}</div></div><div class="detailKpi"><div class="k">Углеводы</div><div class="v">${t.carbohydrate!=null?Math.round(t.carbohydrate)+' г':'—'}</div></div></section><section class="detailCard"><h3>Калории</h3><div class="detailBar"><i style="width:${t.calories!=null?Math.min(100,Number(t.calories)/1650*100):0}%"></i></div><div class="detailMuted" style="margin-top:8px">Цель 1650 ккал</div></section><section class="detailCard"><h3>Питание</h3><div class="detailMuted">Данные загружаются из FatSecret за выбранный день и не сохраняются в историю приложения.</div></section>`}
 function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -374,13 +418,45 @@ function whoopPhys(){return (WHOOP?.physiologicalCycles||[]).filter(x=>x['Cycle 
 function renderHistory(){const root=document.getElementById('historyList'),ps=whoopPhys().slice(0,30),ss=whoopSleep();if(!ps.length){root.innerHTML='<div class="empty">WHOOP history пока не загружена.</div>';return}root.innerHTML=ps.map(p=>{const ds=String(p['Cycle start time']).slice(0,10),s=ss.find(x=>String(x['Cycle start time']).slice(0,10)===ds);return `<section class="card historyDay"><div class="date">${fmtDate(ds)}</div><div class="historyGrid"><div class="historyMetric"><div class="k">Recovery</div><div class="v">${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</div></div><div class="historyMetric"><div class="k">HRV</div><div class="v">${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'}</div></div><div class="historyMetric"><div class="k">RHR</div><div class="v">${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'}</div></div><div class="historyMetric"><div class="k">Day Strain</div><div class="v">${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</div></div></div>${s?`<div class="historySleep">Сон ${minsText(s['Asleep duration (min)'])} · Sleep Performance ${s['Sleep performance %']!=null?Math.round(s['Sleep performance %'])+'%':'—'}</div>`:''}</section>`}).join('')}
 function renderAll(){renderToday();renderCalendar();document.getElementById('journalSummary').innerHTML=periodSummary('month');selectDay(new Date().toISOString().slice(0,10));renderAnalytics();renderHistory()}
 function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.title='Healthy — '+({today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История',sleepDetail:'Сон',activityDetail:'Активность',nutritionDetail:'Калории'}[id]||'Сегодня')}
-function openDetail(id,title){showPage(id,null);window.scrollTo({top:0,behavior:'smooth'})}
+function openDetail(id,title){showPage(id,null);if(id==='nutritionDetail')loadNutritionForDate(selectedDashboardDate||latest()?.date||todayLocalISO()).then(renderNutritionDetail);window.scrollTo({top:0,behavior:'smooth'})}
 function backHome(){const b=document.querySelector('.bottom button');showPage('today',b);window.scrollTo({top:0,behavior:'smooth'})}
 function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date(Date.now()-86400000).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('anxiety')">Не было тревожки</button>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('migraine')">Не было мигрени</button>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
 function pick(v,el){currentState.value=v;el.parentNode.querySelectorAll('.choice').forEach(x=>x.classList.remove('sel'));el.classList.add('sel')}function toggleMed(m,el){currentState.meds=currentState.meds||[];currentState.meds=currentState.meds.includes(m)?currentState.meds.filter(x=>x!==m):[...currentState.meds,m];el.classList.toggle('sel')}
 function saveLog(){if(currentState.value==null)return;const date=new Date(Date.now()-86400000).toISOString().slice(0,10);let detail='';const note=document.getElementById('logNote')?.value?.trim();if(note)detail+=note;const dur=document.getElementById('duration')?.value;if(dur)detail+=(detail?' · ':'')+`длительность ${dur} мин`;if(currentState.meds?.length)detail+=(detail?' · ':'')+`лекарства: ${currentState.meds.join(', ')}`;manual.push({date,category:currentType,value:currentState.value,detail});localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();selectDay(date);renderAnalytics()}
 function closeLog(){document.getElementById('modal').classList.remove('open')}
 function addNote(){const date=prompt('Заметка за какую дату? YYYY-MM-DD',new Date().toISOString().slice(0,10));if(!date)return;const text=prompt('Текст заметки');if(!text)return;manual.push({date,category:'note',value:null,detail:text});localStorage.setItem('healthyManual',JSON.stringify(manual));renderCalendar();selectDay(date)}
+
+function reminderEnabled(){return localStorage.getItem('healthyJournalReminder')==='1'}
+function updateReminderUi(){
+ const btn=document.getElementById('reminderButton'),status=document.getElementById('reminderStatus');if(!btn||!status)return;
+ if(reminderEnabled()&&('Notification'in window)&&Notification.permission==='granted'){
+  btn.textContent='Включено';status.textContent='Разрешение выдано. Напоминание в 10:00 сработает, пока Healthy открыто.';
+ }else{btn.textContent='Включить';status.textContent='Напоминание на 10:00. Приложение должно быть открыто; push при закрытом приложении требует отдельного сервера.'}
+}
+async function enableJournalReminder(){
+ if(!('Notification'in window)){alert('Браузер не поддерживает уведомления. На iPhone используй установленную PWA с экрана Домой.');return}
+ if(!window.isSecureContext){alert('Уведомления доступны на опубликованном HTTPS-сайте.');return}
+ try{
+  const permission=await Notification.requestPermission();
+  if(permission!=='granted'){updateReminderUi();alert('Разрешение на уведомления не выдано.');return}
+  localStorage.setItem('healthyJournalReminder','1');updateReminderUi();startReminderWatcher();
+  new Notification('Healthy',{body:'Напоминание о журнале включено на 10:00.'});
+ }catch(e){console.warn(e);alert('Не удалось включить уведомления.')}
+}
+function startReminderWatcher(){
+ if(reminderTimer)clearInterval(reminderTimer);
+ if(!reminderEnabled()||!('Notification'in window)||Notification.permission!=='granted')return;
+ const check=()=>{
+  const now=new Date(),key='healthyJournalReminderSent_'+todayLocalISO();
+  if(now.getHours()>=10&&localStorage.getItem(key)!=='1'){
+   new Notification('Healthy · Журнал',{body:'Пора отметить вчерашний день в журнале.'});
+   localStorage.setItem(key,'1');
+  }
+ };
+ check();reminderTimer=setInterval(check,15000);
+ document.addEventListener('visibilitychange',check);
+}
+
 boot();
 </script>
 </body>
