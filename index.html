@@ -41,6 +41,24 @@ body{background:radial-gradient(ellipse at 50% -15%,#17212a 0,#090c10 42%,#05070
 .reminderHead small{display:block;color:#9ba3ad;font-size:10px;margin-top:4px;line-height:1.4}
 .reminderButton{border:1px solid #56616e;background:#252d36;color:#f4f7fa;border-radius:20px;padding:9px 12px;font-size:11px;white-space:nowrap}
 .reminderStatus{font-size:10px;color:#9ba3ad;margin-top:8px;line-height:1.4}
+
+.journalDateNav{display:flex;align-items:center;justify-content:space-between;text-align:center;gap:12px;margin:12px 0;padding:8px 2px}
+.journalDateNav b{display:block;font-size:14px;letter-spacing:1.2px;text-transform:uppercase}
+.journalDateNav small{display:block;color:#89939f;font-size:10px;margin-top:5px}
+.whoopJournalGroup{margin:10px 0 15px;background:linear-gradient(145deg,#191f26,#11151a);border:1px solid #2b323b;border-radius:18px;overflow:hidden}
+.journalGroupTitle{padding:13px 15px;color:#89939f;font-size:10px;letter-spacing:1.6px;border-bottom:1px solid #303741}
+.journalQuestion{display:flex;align-items:center;gap:10px;min-height:74px;padding:11px 13px;border-bottom:1px solid #282f37}
+.journalQuestion:last-child{border-bottom:0}
+.journalQuestionText{flex:1;min-width:0;font-size:13px;font-weight:550}
+.journalQuestionText small{display:block;color:#8d97a3;font-size:10px;margin-top:4px;font-weight:400}
+.journalAnswer{display:flex;gap:7px;flex:none}
+.journalAnswer button{width:39px;height:39px;border:1px solid #39414b;border-radius:11px;background:#272e36;color:#e4e9ef;font-size:19px}
+.journalAnswer button.selectedYes{border-color:#20df78;background:#203c31;color:#a8f0c5}
+.journalAnswer button.selectedNo{border-color:#69727d;background:#303741;color:#fff}
+.journalSave{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom));z-index:4;box-shadow:0 8px 25px #0008}
+.journalHistoryToggle{margin-top:18px}
+.textAction{width:100%;border:0;background:none;color:#e9edf2;text-align:left;padding:3px;font-weight:600;display:flex;justify-content:space-between}
+.selectedDayHistory{margin-top:10px}
 </style>
 </head>
 <body>
@@ -63,16 +81,34 @@ body{background:radial-gradient(ellipse at 50% -15%,#17212a 0,#090c10 42%,#05070
 <main id="nutritionDetail" class="page detailPage"><div class="toolbar"><button class="backBtn" onclick="backHome()">‹</button><h2>Калории</h2></div><section id="nutritionDetailContent"></section></main>
 
 <main id="journal" class="page">
-  <div class="toolbar"><h2>Журнал</h2><button class="more">•••</button></div>
+  <div class="toolbar"><h2>Журнал</h2><span class="badge">ежедневные отметки</span></div>
   <section class="reminderCard">
-    <div class="reminderHead"><div><b>НАПОМИНАНИЕ О ЖУРНАЛЕ · 10:00</b><small>Напомнить утром отметить вчерашний день</small></div><button class="reminderButton" id="reminderButton" onclick="enableJournalReminder()">Включить</button></div>
-    <div class="reminderStatus" id="reminderStatus">Для напоминания при закрытом приложении потребуется отдельный push-сервер.</div>
+    <div class="reminderHead"><div><b>НАПОМИНАНИЕ О ЖУРНАЛЕ · 10:00</b><small>Утром отметить привычки и самочувствие за предыдущий день</small></div><button class="reminderButton" id="reminderButton" onclick="enableJournalReminder()">Включить</button></div>
+    <div class="reminderStatus" id="reminderStatus">Для фоновых push при закрытом приложении потребуется push-сервер.</div>
   </section>
-  <div class="switch" id="journalSwitch"><button class="active" onclick="setJournalView('month',this)">Месяц</button><button onclick="setJournalView('week',this)">Неделя</button><button onclick="setJournalView('year',this)">Год</button></div>
-  <section id="journalSummary" class="card periodSummary"></section>
-  <section class="card" id="journalCalendar"><div class="month"><button class="arrow" onclick="changeMonth(-1)">‹</button><strong id="monthTitle">—</strong><button class="arrow" onclick="changeMonth(1)">›</button></div><div class="calendar" id="calendar"></div><div class="legend"><span><i class="dot mig"></i> Мигрень</span><span><i class="dot anx"></i> Тревожность</span><span><i class="dot alc"></i> Алкоголь</span><span><i class="dot caf"></i> Кофеин</span><span><i class="dot cycle"></i> Цикл</span></div></section>
-  <section class="card" id="selectedDay"><div class="empty">Выбери день в календаре.</div></section>
-  <button class="addNote" onclick="addNote()">＋ Добавить заметку</button>
+  <div class="journalDateNav">
+    <button class="dateArrow" onclick="changeJournalDay(-1)" aria-label="Предыдущий день">‹</button>
+    <div><b id="journalDateTitle">—</b><small>Отметь события за выбранный день</small></div>
+    <button class="dateArrow" onclick="changeJournalDay(1)" aria-label="Следующий день">›</button>
+  </div>
+  <section class="whoopJournalGroup">
+    <div class="journalGroupTitle">ДНЕВНЫЕ ПРИВЫЧКИ</div>
+    <div id="journalDaytime"></div>
+  </section>
+  <section class="whoopJournalGroup">
+    <div class="journalGroupTitle">САМОЧУВСТВИЕ</div>
+    <div id="journalWellbeing"></div>
+  </section>
+  <button class="save journalSave" onclick="saveJournalDay()">СОХРАНИТЬ ЖУРНАЛ</button>
+  <section class="card journalHistoryToggle">
+    <button class="textAction" onclick="toggleJournalCalendar()">Календарь и история <span id="calendarToggleIcon">＋</span></button>
+    <div id="journalCalendarWrap" style="display:none">
+      <div class="month"><button class="arrow" onclick="changeMonth(-1)">‹</button><strong id="monthTitle">—</strong><button class="arrow" onclick="changeMonth(1)">›</button></div>
+      <div class="calendar" id="calendar"></div>
+      <div class="legend"><span><i class="dot mig"></i> Мигрень</span><span><i class="dot anx"></i> Тревожность</span><span><i class="dot alc"></i> Алкоголь</span><span><i class="dot caf"></i> Кофеин</span><span><i class="dot cycle"></i> Цикл</span></div>
+      <section id="selectedDay" class="selectedDayHistory"></section>
+    </div>
+  </section>
 </main>
 
 <main id="analytics" class="page">
@@ -104,7 +140,7 @@ let GOOGLE=null,WHOOP=null,NUTRITION=null,manual=JSON.parse(localStorage.getItem
 const labels={alcohol:'Алкоголь',caffeine:'Кофеин после обеда',anxiety:'Тревожность',migraine:'Мигрень'};
 const icons={alcohol:'🍷',caffeine:'☕',anxiety:'🌸',migraine:'🤕'};
 let viewDate=new Date();let currentType=null,currentState={};let analyticsDays=7;
-let selectedDashboardDate=null;const nutritionCache={};let reminderTimer=null;
+let selectedDashboardDate=null;const nutritionCache={};let reminderTimer=null;let journalSelectedDate=null;let journalDraft={};
 
 function openHealthyDb(){
   return new Promise((resolve,reject)=>{
@@ -279,15 +315,73 @@ function renderNutritionDetail(){const n=nutritionDay(),t=n?.totals||{};document
 function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
+
+function initJournalDate(){
+ if(!journalSelectedDate)journalSelectedDate=shiftDate(todayLocalISO(),-1);
+}
+function changeJournalDay(delta){
+ initJournalDate();
+ const next=shiftDate(journalSelectedDate,delta);
+ if(next>todayLocalISO())return;
+ journalSelectedDate=next;journalDraft={};renderWhoopJournal();
+}
+function toggleJournalCalendar(){
+ const wrap=document.getElementById('journalCalendarWrap');
+ const opening=wrap.style.display==='none';
+ wrap.style.display=opening?'block':'none';
+ document.getElementById('calendarToggleIcon').textContent=opening?'−':'＋';
+ if(opening){renderCalendar();selectDay(journalSelectedDate)}
+}
+function renderWhoopJournal(){
+ initJournalDate();
+ const title=document.getElementById('journalDateTitle');
+ if(!title)return;
+ title.textContent=fmtDate(journalSelectedDate);
+ const categories=[
+  {key:'alcohol',question:'Пила алкоголь?',hint:'Количество бокалов'},
+  {key:'caffeine',question:'Пила кофеин после обеда?',hint:'Кофе, чай, энергетики'},
+  {key:'anxiety',question:'Была тревожность?',hint:'От лёгкой тревоги до паники'},
+  {key:'migraine',question:'Была мигрень?',hint:'Симптомы и интенсивность'}
+ ];
+ const saved={};
+ manual.filter(x=>x.date===journalSelectedDate&&categories.some(c=>c.key===x.category)).forEach(x=>saved[x.category]=x);
+ const row=c=>{
+  const value=Object.prototype.hasOwnProperty.call(journalDraft,c.key)?journalDraft[c.key]:saved[c.key]?.value;
+  const answered=value!==undefined&&value!==null;
+  const yes=answered&&Number(value)!==0;
+  const no=answered&&!yes;
+  return `<div class="journalQuestion"><div class="journalQuestionText">${c.question}<small>${saved[c.key]?.detail?esc(saved[c.key].detail):c.hint}</small></div><div class="journalAnswer"><button class="${no?'selectedNo':''}" aria-label="Нет" onclick="setJournalAnswer('${c.key}',0)">×</button><button class="${yes?'selectedYes':''}" aria-label="Да" onclick="setJournalAnswer('${c.key}',1)">✓</button></div></div>`;
+ };
+ document.getElementById('journalDaytime').innerHTML=categories.slice(0,2).map(row).join('');
+ document.getElementById('journalWellbeing').innerHTML=categories.slice(2).map(row).join('');
+}
+function setJournalAnswer(category,value){
+ if(value===0){journalDraft[category]=0;renderWhoopJournal();return}
+ currentType=category;
+ openLog(category);
+}
+function saveJournalDay(){
+ initJournalDate();
+ Object.entries(journalDraft).forEach(([category,value])=>{
+  const row={date:journalSelectedDate,category,value,detail:''};
+  const idx=manual.findIndex(x=>x.date===journalSelectedDate&&x.category===category);
+  if(idx>=0)manual[idx]=row;else manual.push(row);
+ });
+ localStorage.setItem('healthyManual',JSON.stringify(manual));
+ journalDraft={};renderWhoopJournal();renderCalendar();
+ const btn=document.querySelector('.journalSave');
+ if(btn){btn.textContent='СОХРАНЕНО ✓';setTimeout(()=>btn.textContent='СОХРАНИТЬ ЖУРНАЛ',1500)}
+}
+
 function journalMap(){
 const m={};
 for(const r of WHOOP?.journal||[]){if(!r.answeredYes)continue;(m[r.date]??=[]).push(r.category)}
-for(const x of manual){if(x.category==='none')continue;(m[x.date]??=[]).push(x.category)}
+for(const x of manual){if(x.category==='none'||Number(x.value)===0)continue;(m[x.date]??=[]).push(x.category)}
 return m
 }
 function allEventsForDate(ds){
 return [...(WHOOP?.journal||[]).filter(r=>r.answeredYes&&r.date===ds).map(r=>({category:r.category,value:null,detail:'Отмечено в WHOOP'})),
-...(manual.filter(x=>x.date===ds&&x.category!=='none'))]
+...(manual.filter(x=>x.date===ds&&x.category!=='none'&&Number(x.value)!==0))]
 }
 function rangeDates(view){
 const now=new Date();now.setHours(12,0,0,0);
@@ -375,12 +469,12 @@ document.getElementById('modal').classList.add('open')
 function changeMonth(n){viewDate=new Date(viewDate.getFullYear(),viewDate.getMonth()+n,1);renderCalendar();document.getElementById('journalSummary').innerHTML=periodSummary('month')}
 function analyticsManual(type,period){
 const end=new Date();end.setHours(23,59,59,999);const start=new Date(end.getTime()-(period-1)*86400000);
-return manual.filter(x=>x.category===type&&new Date(x.date+'T23:59:59')>=start)
+return manual.filter(x=>x.category===type&&Number(x.value)!==0&&new Date(x.date+'T23:59:59')>=start)
 }
 function analyticsEvents(type,period){
 const end=new Date();end.setHours(23,59,59,999);const start=new Date(end.getTime()-(period-1)*86400000);
 return [...(WHOOP?.journal||[]).filter(r=>r.answeredYes&&r.category===type&&new Date(r.date+'T12:00:00')>=start).map(r=>({date:r.date,value:null,detail:'Отмечено в WHOOP'})),
-...manual.filter(x=>x.category===type&&new Date(x.date+'T12:00:00')>=start)]
+...manual.filter(x=>x.category===type&&Number(x.value)!==0&&new Date(x.date+'T12:00:00')>=start)]
 }
 function renderAnalytics(){
 const root=document.getElementById('analyticsContent'),period=analyticsDays,arr=days().slice(0,period),h=arr.filter(x=>x.hrv!=null),sleep=arr.filter(x=>x.sleep?.durationMin!=null),types=['migraine','anxiety','alcohol','caffeine'],names={migraine:'Мигрень',anxiety:'Тревожность',alcohol:'Алкоголь',caffeine:'Кофеин после обеда'};
@@ -409,20 +503,20 @@ if(e.category==='anxiety'||e.category==='migraine')return e.value!=null?`инт�
 return e.detail||'Отмечено';
 }
 function markNone(type){
-const date=new Date(Date.now()-86400000).toISOString().slice(0,10);
+const date=journalSelectedDate||shiftDate(todayLocalISO(),-1);
 manual.push({date,category:'none',value:null,detail:`${labels[type]} не было`});
 localStorage.setItem('healthyManual',JSON.stringify(manual));renderCalendar();selectDay(date);renderAnalytics()
 }
 function markNoneFromModal(type){markNone(type);closeLog()}
 function whoopPhys(){return (WHOOP?.physiologicalCycles||[]).filter(x=>x['Cycle start time']).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}function whoopSleep(){return (WHOOP?.sleeps||[]).filter(x=>x['Asleep duration (min)']!=null).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}
 function renderHistory(){const root=document.getElementById('historyList'),ps=whoopPhys().slice(0,30),ss=whoopSleep();if(!ps.length){root.innerHTML='<div class="empty">WHOOP history пока не загружена.</div>';return}root.innerHTML=ps.map(p=>{const ds=String(p['Cycle start time']).slice(0,10),s=ss.find(x=>String(x['Cycle start time']).slice(0,10)===ds);return `<section class="card historyDay"><div class="date">${fmtDate(ds)}</div><div class="historyGrid"><div class="historyMetric"><div class="k">Recovery</div><div class="v">${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</div></div><div class="historyMetric"><div class="k">HRV</div><div class="v">${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'}</div></div><div class="historyMetric"><div class="k">RHR</div><div class="v">${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'}</div></div><div class="historyMetric"><div class="k">Day Strain</div><div class="v">${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</div></div></div>${s?`<div class="historySleep">Сон ${minsText(s['Asleep duration (min)'])} · Sleep Performance ${s['Sleep performance %']!=null?Math.round(s['Sleep performance %'])+'%':'—'}</div>`:''}</section>`}).join('')}
-function renderAll(){renderToday();renderCalendar();document.getElementById('journalSummary').innerHTML=periodSummary('month');selectDay(new Date().toISOString().slice(0,10));renderAnalytics();renderHistory()}
+function renderAll(){renderToday();renderCalendar();renderWhoopJournal();if(document.getElementById('journalSummary'))document.getElementById('journalSummary').innerHTML=periodSummary('month');if(document.getElementById('selectedDay')&&document.getElementById('journalCalendarWrap')?.style.display!=='none')selectDay(journalSelectedDate||shiftDate(todayLocalISO(),-1));renderAnalytics();renderHistory()}
 function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.title='Healthy — '+({today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История',sleepDetail:'Сон',activityDetail:'Активность',nutritionDetail:'Калории'}[id]||'Сегодня')}
 function openDetail(id,title){showPage(id,null);if(id==='nutritionDetail')loadNutritionForDate(selectedDashboardDate||latest()?.date||todayLocalISO()).then(renderNutritionDetail);window.scrollTo({top:0,behavior:'smooth'})}
 function backHome(){const b=document.querySelector('.bottom button');showPage('today',b);window.scrollTo({top:0,behavior:'smooth'})}
-function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date(Date.now()-86400000).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('anxiety')">Не было тревожки</button>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('migraine')">Не было мигрени</button>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
+function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date((journalSelectedDate||shiftDate(todayLocalISO(),-1))+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('anxiety')">Не было тревожки</button>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('migraine')">Не было мигрени</button>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
 function pick(v,el){currentState.value=v;el.parentNode.querySelectorAll('.choice').forEach(x=>x.classList.remove('sel'));el.classList.add('sel')}function toggleMed(m,el){currentState.meds=currentState.meds||[];currentState.meds=currentState.meds.includes(m)?currentState.meds.filter(x=>x!==m):[...currentState.meds,m];el.classList.toggle('sel')}
-function saveLog(){if(currentState.value==null)return;const date=new Date(Date.now()-86400000).toISOString().slice(0,10);let detail='';const note=document.getElementById('logNote')?.value?.trim();if(note)detail+=note;const dur=document.getElementById('duration')?.value;if(dur)detail+=(detail?' · ':'')+`длительность ${dur} мин`;if(currentState.meds?.length)detail+=(detail?' · ':'')+`лекарства: ${currentState.meds.join(', ')}`;manual.push({date,category:currentType,value:currentState.value,detail});localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();selectDay(date);renderAnalytics()}
+function saveLog(){if(currentState.value==null)return;const date=journalSelectedDate||shiftDate(todayLocalISO(),-1);let detail='';const note=document.getElementById('logNote')?.value?.trim();if(note)detail+=note;const dur=document.getElementById('duration')?.value;if(dur)detail+=(detail?' · ':'')+`длительность ${dur} мин`;if(currentState.meds?.length)detail+=(detail?' · ':'')+`лекарства: ${currentState.meds.join(', ')}`;manual.push({date,category:currentType,value:currentState.value,detail});localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();selectDay(date);renderWhoopJournal();renderAnalytics()}
 function closeLog(){document.getElementById('modal').classList.remove('open')}
 function addNote(){const date=prompt('Заметка за какую дату? YYYY-MM-DD',new Date().toISOString().slice(0,10));if(!date)return;const text=prompt('Текст заметки');if(!text)return;manual.push({date,category:'note',value:null,detail:text});localStorage.setItem('healthyManual',JSON.stringify(manual));renderCalendar();selectDay(date)}
 
@@ -434,14 +528,26 @@ function updateReminderUi(){
  }else{btn.textContent='Включить';status.textContent='Напоминание на 10:00. Приложение должно быть открыто; push при закрытом приложении требует отдельного сервера.'}
 }
 async function enableJournalReminder(){
- if(!('Notification'in window)){alert('Браузер не поддерживает уведомления. На iPhone используй установленную PWA с экрана Домой.');return}
- if(!window.isSecureContext){alert('Уведомления доступны на опубликованном HTTPS-сайте.');return}
+ const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+ const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+ if(isIOS&&!standalone){
+  alert('На iPhone push-уведомления доступны только в установленном веб-приложении. Сначала нажми «Поделиться» → «На экран Домой», открой Healthy с нового значка и снова нажми «Включить».');
+  updateReminderUi();return;
+ }
+ if(!('Notification' in window)||!window.isSecureContext){
+  alert('Этот браузер не поддерживает Web Notifications в текущем режиме. Открой опубликованный HTTPS-сайт или установленную PWA.');
+  updateReminderUi();return;
+ }
  try{
   const permission=await Notification.requestPermission();
-  if(permission!=='granted'){updateReminderUi();alert('Разрешение на уведомления не выдано.');return}
-  localStorage.setItem('healthyJournalReminder','1');updateReminderUi();startReminderWatcher();
-  new Notification('Healthy',{body:'Напоминание о журнале включено на 10:00.'});
- }catch(e){console.warn(e);alert('Не удалось включить уведомления.')}
+  if(permission!=='granted'){
+   alert('Разрешение не выдано. Проверь настройки уведомлений для Healthy в настройках устройства.');
+   updateReminderUi();return;
+  }
+  localStorage.setItem('healthyJournalReminder','1');
+  updateReminderUi();startReminderWatcher();
+  new Notification('Healthy',{body:'Разрешение получено. Напоминание о журнале настроено на 10:00, пока приложение открыто.'});
+ }catch(e){console.warn(e);alert('Не удалось запросить разрешение: '+(e.message||e));}
 }
 function startReminderWatcher(){
  if(reminderTimer)clearInterval(reminderTimer);
