@@ -87,12 +87,129 @@ body{background:radial-gradient(ellipse at 50% -15%,#17212a 0,#090c10 42%,#05070
 
 <script>
 const BACKEND='https://script.google.com/macros/s/AKfycbwUh9XEyN14Ui3lVHdFxf9Dnqb3eJG29ZO3kZD2prhyYe10GXJrNSCE9RurPBEw1p9BRA/exec';
+const DB_NAME='healthy-cache-v1',DB_VERSION=1,DB_STORE='days',DB_META='meta';
 let GOOGLE=null,WHOOP=null,NUTRITION=null,manual=JSON.parse(localStorage.getItem('healthyManual')||'[]');
 const labels={alcohol:'Алкоголь',caffeine:'Кофеин после обеда',anxiety:'Тревожность',migraine:'Мигрень'};
 const icons={alcohol:'🍷',caffeine:'☕',anxiety:'🌸',migraine:'🤕'};
 let viewDate=new Date();let currentType=null,currentState={};let analyticsDays=7;
-function loadJsonp(url){return new Promise((resolve,reject)=>{const cb='healthyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');let done=false;function clean(){if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(_){}if(s.parentNode)s.parentNode.removeChild(s)}const timer=setTimeout(()=>{clean();reject(new Error('timeout'))},20000);window[cb]=d=>{clean();if(d&&d.ok===false)reject(new Error(d.error||'Google Health error'));else resolve(d)};s.async=true;s.onerror=()=>{clean();reject(new Error('script load error'))};s.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.appendChild(s)})}
-async function boot(){try{WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json())}catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}try{GOOGLE=await loadJsonp(BACKEND+'?action=data&days=60');if(!GOOGLE||!GOOGLE.ok)throw new Error('Google Health error');document.getElementById('liveStatus').textContent='свежие данные';document.getElementById('liveBadge').textContent='Google Health'}catch(e){console.error(e);GOOGLE=null;document.getElementById('liveStatus').textContent='нет связи';document.getElementById('liveBadge').textContent='offline'}try{const ds=latest()?.date||new Date().toISOString().slice(0,10);NUTRITION=await loadJsonp(BACKEND+'?action=fatsecret_range&startDate='+encodeURIComponent(ds)+'&endDate='+encodeURIComponent(ds));}catch(e){console.warn('FatSecret nutrition unavailable',e);NUTRITION=null}renderAll()}
+
+function openHealthyDb(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window)){reject(new Error('IndexedDB недоступна'));return}
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE,{keyPath:'date'});
+      if(!db.objectStoreNames.contains(DB_META))db.createObjectStore(DB_META,{keyPath:'key'});
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error('Не удалось открыть локальную базу'));
+  });
+}
+async function dbGetAllDays(){
+  const db=await openHealthyDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_STORE,'readonly'),req=tx.objectStore(DB_STORE).getAll();
+    req.onsuccess=()=>{db.close();resolve(req.result||[])};
+    req.onerror=()=>{db.close();reject(req.error)};
+  });
+}
+async function dbGetMeta(key){
+  const db=await openHealthyDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(DB_META,'readonly'),req=tx.objectStore(DB_META).get(key);
+    req.onsuccess=()=>{db.close();resolve(req.result?.value??null)};
+    req.onerror=()=>{db.close();reject(req.error)};
+  });
+}
+async function dbSaveSync(payload){
+  const db=await openHealthyDb();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction([DB_STORE,DB_META],'readwrite');
+    const store=tx.objectStore(DB_STORE);
+    Object.values(payload.days||{}).forEach(day=>{if(day?.date)store.put(day)});
+    tx.objectStore(DB_META).put({key:'lastSync',value:payload.generatedAt||new Date().toISOString()});
+    tx.objectStore(DB_META).put({key:'lastRangeEnd',value:payload.range?.end||new Date().toISOString().slice(0,10)});
+    tx.oncomplete=()=>{db.close();resolve()};
+    tx.onerror=()=>{db.close();reject(tx.error||new Error('Не удалось сохранить данные'))};
+    tx.onabort=()=>{db.close();reject(tx.error||new Error('Сохранение прервано'))};
+  });
+}
+function mergeGoogleDays(base,incoming){
+  const merged={...(base||{}),...(incoming||{})};
+  merged.days={...(base?.days||{}),...(incoming?.days||{})};
+  merged.ok=true;merged.source='Google Health API';
+  merged.generatedAt=incoming?.generatedAt||base?.generatedAt||null;
+  merged.range={start:base?.range?.start||incoming?.range?.start||null,end:incoming?.range?.end||base?.range?.end||null};
+  merged.rawCounts=incoming?.rawCounts||base?.rawCounts||{};
+  return merged;
+}
+function dateShift(ds,offset){
+  const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);
+}
+function todayLocalISO(){
+  const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function loadJsonp(url,timeoutMs=90000){
+  return new Promise((resolve,reject)=>{
+    const cb='healthyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');
+    let done=false;
+    function clean(){if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(_){}if(s.parentNode)s.parentNode.removeChild(s)}
+    const timer=setTimeout(()=>{clean();reject(new Error('timeout'))},timeoutMs);
+    window[cb]=d=>{clean();if(d&&d.ok===false)reject(new Error(d.error||'Google Health error'));else resolve(d)};
+    s.async=true;s.onerror=()=>{clean();reject(new Error('script load error'))};
+    s.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();
+    document.head.appendChild(s);
+  });
+}
+function setConnectionStatus(text,badge){
+  const status=document.getElementById('liveStatus'),liveBadge=document.getElementById('liveBadge');
+  if(status)status.textContent=text;if(liveBadge)liveBadge.textContent=badge;
+}
+async function loadCachedGoogle(){
+  try{
+    const rows=await dbGetAllDays();
+    if(rows.length){
+      const map={};rows.forEach(day=>{map[day.date]=day});
+      GOOGLE={ok:true,source:'Google Health API (локальный кэш)',days:map,range:{start:rows.map(x=>x.date).sort()[0],end:rows.map(x=>x.date).sort().slice(-1)[0]}};
+      return true;
+    }
+  }catch(e){console.warn('IndexedDB cache unavailable',e)}
+  return false;
+}
+async function syncGoogle(){
+  const cachedDays=Object.keys(GOOGLE?.days||{}).sort();
+  const lastDate=cachedDays.length?cachedDays[cachedDays.length-1]:null;
+  const today=todayLocalISO();
+  const startDate=lastDate?dateShift(lastDate,-3):dateShift(today,-59);
+  const url=BACKEND+'?action=data&days=90&startDate='+encodeURIComponent(startDate)+'&endDate='+encodeURIComponent(today);
+  const fresh=await loadJsonp(url,90000);
+  if(!fresh||!fresh.ok||!fresh.days)throw new Error('Некорректный ответ Google Health');
+  GOOGLE=mergeGoogleDays(GOOGLE,fresh);
+  await dbSaveSync(fresh);
+  setConnectionStatus('синхронизировано','Google Health · обновлено');
+}
+async function boot(){
+  try{WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json())}
+  catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}
+  const hasCache=await loadCachedGoogle();
+  if(hasCache){setConnectionStatus('из кэша','локальные данные');renderAll()}
+  else{setConnectionStatus('загрузка…','первая загрузка')}
+  try{
+    await syncGoogle();
+    renderAll();
+  }catch(e){
+    console.error('Google Health sync failed:',e);
+    setConnectionStatus(hasCache?'офлайн':'нет связи',hasCache?'сохранённые данные':'offline');
+    if(!hasCache)GOOGLE=null;
+    renderAll();
+  }
+  try{
+    const ds=latest()?.date||todayLocalISO();
+    NUTRITION=await loadJsonp(BACKEND+'?action=fatsecret_range&startDate='+encodeURIComponent(ds)+'&endDate='+encodeURIComponent(ds),45000);
+  }catch(e){console.warn('FatSecret nutrition unavailable',e);NUTRITION=null}
+  renderAll();
+}
 function days(){return Object.values(GOOGLE?.days||{}).sort((a,b)=>String(b.date).localeCompare(String(a.date)))}
 function latest(){return days()[0]||null}
 function fmtDate(ds){return new Date(ds+'T12:00:00').toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'})}
@@ -101,9 +218,9 @@ function shortMins(m){if(m==null)return '—';return `${Math.floor(m/60)}:${Stri
 function nutritionDay(){const ds=latest()?.date;return ds?NUTRITION?.days?.[ds]||null:null}
 function journalCountToday(){const ds=latest()?.date||new Date().toISOString().slice(0,10);return allEventsForDate(ds).length}
 function renderToday(){
-const d=latest();if(!d){document.getElementById('todayDate').textContent='Нет данных';return}
+const d=latest();if(!d){document.getElementById('todayDate').textContent='Нет данных';document.getElementById('homeScoreCaption').textContent='НЕТ ДАННЫХ';return}
 document.getElementById('todayDate').textContent=fmtDate(d.date);
-const score=d.sleepScore ?? d.sleep?.score ?? null;const sleepMin=d.sleep?.durationMin??null;const eff=d.sleep?.efficiencyPct??null;
+const score=d.sleepScore ?? d.sleep?.score ?? null;const sleepMin=d.sleep?.durationMin??null;const eff=d.sleep?.efficiencyPct??d.sleep?.sleepEfficiencyPct??null;
 document.getElementById('homeSleepScore').textContent=score!=null?Math.round(score):'—';
 document.getElementById('homeSleepSub').textContent=minsText(sleepMin);
 document.getElementById('homeScoreRing').style.setProperty('--score',Math.max(0,Math.min(100,Number(score)||0))*3.6+'deg');document.getElementById('homeScoreCaption').textContent=score!=null?(score>=85?'ВЫСОКИЙ РЕЗУЛЬТАТ':score>=70?'ХОРОШИЙ РЕЗУЛЬТАТ':'ЕСТЬ ЧТО УЛУЧШИТЬ'):'НЕТ ДАННЫХ';document.getElementById('homeSleepEff').textContent=eff!=null?Math.round(eff)+'%':'—';
@@ -112,7 +229,7 @@ const ws=d.workouts||[],levels=d.activityLevel||[],lm={SEDENTARY:0,LIGHTLY_ACTIV
 const n=nutritionDay(),tot=n?.totals||{};const kcal=tot.calories!=null?Number(tot.calories):null;document.getElementById('homeCalories').textContent=kcal!=null?Math.round(kcal)+' ккал':'—';document.getElementById('homeNutritionSub').textContent=kcal!=null?'Б '+Math.round(tot.protein||0)+' · Ж '+Math.round(tot.fat||0)+' · У '+Math.round(tot.carbohydrate||0):'FatSecret не загрузился';
 document.getElementById('homeJournalCount').textContent=journalCountToday();document.getElementById('homeJournalSub').textContent=journalCountToday()===1?'запись':'записей';
 renderSleepDetail();renderActivityDetail();renderNutritionDetail();}
-function renderSleepDetail(){const d=latest(),s=d?.sleep;if(!d||!s){document.getElementById('sleepDetailContent').innerHTML='<div class="empty">Нет данных сна.</div>';return}const score=d.sleepScore??s.score??null;document.getElementById('sleepDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Sleep Score</div><div class="v">${score!=null?Math.round(score):'—'} / 100</div></div><div class="detailKpi"><div class="k">Эффективность</div><div class="v">${s.efficiencyPct!=null?Number(s.efficiencyPct).toFixed(1)+'%':'—'}</div></div><div class="detailKpi"><div class="k">Сон</div><div class="v">${minsText(s.durationMin)}</div></div><div class="detailKpi"><div class="k">В постели</div><div class="v">${minsText(s.inBedDurationMin)}</div></div></section><section class="detailCard"><h3>Структура сна</h3><div class="detailRow"><span>Deep</span><b>${s.deepMin!=null?Math.round(s.deepMin)+' мин':'—'}</b></div><div class="detailRow"><span>REM</span><b>${s.remMin!=null?Math.round(s.remMin)+' мин':'—'}</b></div><div class="detailRow"><span>Light</span><b>${s.lightMin!=null?Math.round(s.lightMin)+' мин':'—'}</b></div><div class="detailRow"><span>Awake</span><b>${s.awakeMin!=null?Math.round(s.awakeMin)+' мин':'—'}</b></div></section><section class="detailCard"><h3>Оценка Healthy</h3><div class="detailMuted">Наш прозрачный Sleep Score v2 калиброван по твоим 4 известным Google Score. Это не формула Google.</div></section>`}
+function renderSleepDetail(){const d=latest(),s=d?.sleep;if(!d||!s){document.getElementById('sleepDetailContent').innerHTML='<div class="empty">Нет данных сна.</div>';return}const score=d.sleepScore??s.score??null;document.getElementById('sleepDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Sleep Score</div><div class="v">${score!=null?Math.round(score):'—'} / 100</div></div><div class="detailKpi"><div class="k">Эффективность</div><div class="v">${(s.efficiencyPct??s.sleepEfficiencyPct)!=null?Number(s.efficiencyPct??s.sleepEfficiencyPct).toFixed(1)+'%':'—'}</div></div><div class="detailKpi"><div class="k">Сон</div><div class="v">${minsText(s.durationMin)}</div></div><div class="detailKpi"><div class="k">В постели</div><div class="v">${minsText(s.inBedDurationMin??s.timeInBedMin)}</div></div></section><section class="detailCard"><h3>Структура сна</h3><div class="detailRow"><span>Deep</span><b>${s.deepMin!=null?Math.round(s.deepMin)+' мин':'—'}</b></div><div class="detailRow"><span>REM</span><b>${s.remMin!=null?Math.round(s.remMin)+' мин':'—'}</b></div><div class="detailRow"><span>Light</span><b>${s.lightMin!=null?Math.round(s.lightMin)+' мин':'—'}</b></div><div class="detailRow"><span>Awake</span><b>${s.awakeMin!=null?Math.round(s.awakeMin)+' мин':'—'}</b></div></section><section class="detailCard"><h3>Оценка Healthy</h3><div class="detailMuted">Наш прозрачный Sleep Score v2 калиброван по твоим 4 известным Google Score. Это не формула Google.</div></section>`}
 function renderActivityDetail(){const d=latest();if(!d){return}const ws=d.workouts||[],levels=d.activityLevel||[],zones=d.timeInHeartRateZone||[];const mins=levels.reduce((a,x)=>a+Number(x.durationMin||0),0);const active=levels.filter(x=>x.type!=='SEDENTARY').reduce((a,x)=>a+Number(x.durationMin||0),0);const zt=zones.reduce((a,x)=>a+Number(x.durationMin||0),0);document.getElementById('activityDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Шаги</div><div class="v">${d.steps!=null?Number(d.steps).toLocaleString('ru-RU'):'—'}</div></div><div class="detailKpi"><div class="k">Активные минуты</div><div class="v">${Math.round(active)}</div></div><div class="detailKpi"><div class="k">HR-зоны</div><div class="v">${Math.round(zt)} мин</div></div><div class="detailKpi"><div class="k">Тренировки</div><div class="v">${ws.length}</div></div></section><section class="detailCard"><h3>Активность за день</h3><div class="detailBar"><i style="width:${Math.min(100,active/180*100)}%"></i></div><div class="detailMuted" style="margin-top:8px">${Math.round(active)} из условных 180 активных минут</div></section><section class="detailCard"><h3>Тренировки</h3>${ws.length?ws.map(w=>`<div class="detailRow"><span>${esc(w.name||prettyType(w.type))}</span><b>${w.durationMin!=null?Math.round(w.durationMin)+' мин':'—'}</b></div>`).join(''):'<div class="empty">Тренировок за этот день нет.</div>'}</section>`}
 function renderNutritionDetail(){const n=nutritionDay(),t=n?.totals||{};document.getElementById('nutritionDetailContent').innerHTML=`<section class="detailKpis"><div class="detailKpi"><div class="k">Калории</div><div class="v">${t.calories!=null?Math.round(t.calories)+' ккал':'—'}</div></div><div class="detailKpi"><div class="k">Белок</div><div class="v">${t.protein!=null?Math.round(t.protein)+' г':'—'}</div></div><div class="detailKpi"><div class="k">Жиры</div><div class="v">${t.fat!=null?Math.round(t.fat)+' г':'—'}</div></div><div class="detailKpi"><div class="k">Углеводы</div><div class="v">${t.carbohydrate!=null?Math.round(t.carbohydrate)+' г':'—'}</div></div></section><section class="detailCard"><h3>Калории</h3><div class="detailBar"><i style="width:${t.calories!=null?Math.min(100,Number(t.calories)/1650*100):0}%"></i></div><div class="detailMuted" style="margin-top:8px">Цель 1650 ккал</div></section><section class="detailCard"><h3>Питание</h3><div class="detailMuted">Данные загружаются из FatSecret за выбранный день и не сохраняются в историю приложения.</div></section>`}
 function prettyType(x){return String(x||'Тренировка').toLowerCase().replaceAll('_',' ')}
@@ -256,7 +373,7 @@ function markNoneFromModal(type){markNone(type);closeLog()}
 function whoopPhys(){return (WHOOP?.physiologicalCycles||[]).filter(x=>x['Cycle start time']).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}function whoopSleep(){return (WHOOP?.sleeps||[]).filter(x=>x['Asleep duration (min)']!=null).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}
 function renderHistory(){const root=document.getElementById('historyList'),ps=whoopPhys().slice(0,30),ss=whoopSleep();if(!ps.length){root.innerHTML='<div class="empty">WHOOP history пока не загружена.</div>';return}root.innerHTML=ps.map(p=>{const ds=String(p['Cycle start time']).slice(0,10),s=ss.find(x=>String(x['Cycle start time']).slice(0,10)===ds);return `<section class="card historyDay"><div class="date">${fmtDate(ds)}</div><div class="historyGrid"><div class="historyMetric"><div class="k">Recovery</div><div class="v">${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</div></div><div class="historyMetric"><div class="k">HRV</div><div class="v">${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'}</div></div><div class="historyMetric"><div class="k">RHR</div><div class="v">${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'}</div></div><div class="historyMetric"><div class="k">Day Strain</div><div class="v">${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</div></div></div>${s?`<div class="historySleep">Сон ${minsText(s['Asleep duration (min)'])} · Sleep Performance ${s['Sleep performance %']!=null?Math.round(s['Sleep performance %'])+'%':'—'}</div>`:''}</section>`}).join('')}
 function renderAll(){renderToday();renderCalendar();document.getElementById('journalSummary').innerHTML=periodSummary('month');selectDay(new Date().toISOString().slice(0,10));renderAnalytics();renderHistory()}
-function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.getElementById('title').textContent={today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История',sleepDetail:'Сон',activityDetail:'Активность',nutritionDetail:'Калории'}[id]||'Сегодня'}
+function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.title='Healthy — '+({today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История',sleepDetail:'Сон',activityDetail:'Активность',nutritionDetail:'Калории'}[id]||'Сегодня')}
 function openDetail(id,title){showPage(id,null);window.scrollTo({top:0,behavior:'smooth'})}
 function backHome(){const b=document.querySelector('.bottom button');showPage('today',b);window.scrollTo({top:0,behavior:'smooth'})}
 function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date(Date.now()-86400000).toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('anxiety')">Не было тревожки</button>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('migraine')">Не было мигрени</button>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
