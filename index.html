@@ -67,7 +67,13 @@ body{background:radial-gradient(ellipse at 50% -15%,#17212a 0,#090c10 42%,#05070
 
 <main id="today" class="page active">
   <div class="whoopDate"><button class="dateArrow" aria-label="Предыдущий день" onclick="changeDashboardDay(-1)">‹</button><div><b id="todayDate">Загружаем данные…</b><small id="liveBadge">GOOGLE HEALTH</small></div><button class="dateArrow" aria-label="Следующий день" onclick="changeDashboardDay(1)">›</button></div>
-  <section class="scoreHero"><div class="scoreRing" id="homeScoreRing"><div><small>SLEEP SCORE</small><strong id="homeSleepScore">—</strong><em>/ 100</em></div></div><div class="scoreCaption" id="homeScoreCaption">ПОСЛЕДНЯЯ НОЧЬ</div></section>
+  <section class="scoreHero"><div class="scoreRing" id="homeScoreRing"><div><small>ГОТОВНОСТЬ</small><strong id="homeSleepScore">—</strong><em>/ 100</em></div></div><div class="scoreCaption" id="homeScoreCaption">ПОСЛЕДНЯЯ НОЧЬ</div></section>
+  <section class="detailCard" style="margin:12px 0 18px">
+    <div class="sectionHead"><h3>Анализ Daily Readiness</h3><span class="badge">13–20 НОЯБРЯ</span></div>
+    <p class="muted" style="font-size:12px;line-height:1.5;margin:6px 0 12px">Выгрузить показатели Google Health за 6–20 ноября для сопоставления с оценками готовности из Fitbit.</p>
+    <button class="primaryBtn" id="readinessExportBtn" onclick="exportReadinessDiagnostics()" style="width:100%">Выгрузить данные для анализа</button>
+    <div id="readinessExportStatus" class="muted" style="font-size:11px;margin-top:8px"></div>
+  </section>
   <div class="whoopList">
     <button class="whoopRow" onclick="openDetail('sleepDetail','Сон')"><span class="whoopRowIcon sleepIcon">☾</span><span class="whoopRowMain"><b>СОН</b><small id="homeSleepSub">—</small></span><span class="whoopRowStat"><strong id="homeSleepEff">—</strong><small>эффект.</small></span><span class="whoopChevron">›</span></button>
     <button class="whoopRow" onclick="openDetail('activityDetail','Активность')"><span class="whoopRowIcon activityIcon">⌁</span><span class="whoopRowMain"><b>АКТИВНОСТЬ</b><small id="homeActivitySub">—</small></span><span class="whoopRowStat"><strong id="homeSteps">—</strong><small>шагов</small></span><span class="whoopChevron">›</span></button>
@@ -257,7 +263,52 @@ async function syncGoogle(){
   await dbSaveSync(fresh);
   setConnectionStatus('синхронизировано','Google Health · обновлено');
 }
+const READINESS_REFERENCE={
+ "2026-11-13":17,"2026-11-14":63,"2026-11-15":65,"2026-11-16":53,
+ "2026-11-17":52,"2026-11-18":43,"2026-11-19":55,"2026-11-20":54
+};
+function exportReadinessDiagnostics(){
+ const status=document.getElementById('readinessExportStatus');
+ const btn=document.getElementById('readinessExportBtn');
+ try{
+  const start='2026-11-06',end='2026-11-20';
+  const rows=Object.keys(GOOGLE?.days||{}).filter(ds=>ds>=start&&ds<=end).sort().map(ds=>{
+   const d=GOOGLE.days[ds]||{},sl=d.sleep||{};
+   return {
+    date:ds,readiness_reference:READINESS_REFERENCE[ds]??null,
+    hrv_ms:d.hrv??null,resting_heart_rate_bpm:d.rhr??null,
+    respiratory_rate_bpm:d.respiratoryRate??null,spo2_pct:d.spo2??null,
+    sleep_duration_min:sl.durationMin??null,time_in_bed_min:sl.timeInBedMin??sl.inBedDurationMin??null,
+    sleep_efficiency_pct:sl.efficiencyPct??sl.sleepEfficiencyPct??null,
+    deep_sleep_min:sl.deepMin??null,rem_sleep_min:sl.remMin??null,
+    light_sleep_min:sl.lightMin??null,awake_min:sl.awakeMin??null,
+    sleep_latency_min:sl.sleepLatencyMin??null,minutes_after_wakeup:sl.minutesAfterWakeUp??null,
+    sleep_start:sl.startTime??null,sleep_end:sl.endTime??null,
+    steps:d.steps??null,workouts_count:Array.isArray(d.workouts)?d.workouts.length:null,
+    activity_level:d.activityLevel??null
+   };
+  });
+  const payload={
+   title:'Healthy — Daily Readiness diagnostics',
+   exported_at:new Date().toISOString(),
+   source:GOOGLE?.source||'Google Health API',
+   requested_range:{start,end},
+   readiness_reference_note:'Readiness scores manually transcribed from user screenshots; null means no screenshot score.',
+   readiness_reference:READINESS_REFERENCE,
+   raw_counts:GOOGLE?.rawCounts||null,
+   api_range:GOOGLE?.range||null,
+   days:rows,
+   missing_dates:Array.from({length:15},(_,i)=>dateShift(start,i)).filter(ds=>!GOOGLE?.days?.[ds])
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='healthy-readiness-diagnostics-2026-11-06_2026-11-20.json';
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+  status.textContent=`Готово: ${rows.length} дней выгружено. Внутри есть значения HRV, пульса, сна и оценки Readiness.`;
+ }catch(e){console.error(e);status.textContent='Не удалось сформировать выгрузку: '+(e.message||e)}
+}
 async function boot(){
+  selectedDashboardDate=todayLocalISO();journalSelectedDate=todayLocalISO();
   try{WHOOP=await fetch('data.json?'+Date.now()).then(r=>r.json())}
   catch(e){WHOOP={physiologicalCycles:[],sleeps:[],workouts:[],journal:[]}}
   const hasCache=await loadCachedGoogle();
@@ -272,7 +323,7 @@ async function boot(){
     if(!hasCache)GOOGLE=null;
     renderAll();
   }
-  selectedDashboardDate=latest()?.date||todayLocalISO();
+  selectedDashboardDate=todayLocalISO();
   await loadNutritionForDate(selectedDashboardDate);
   renderAll();updateReminderUi();startReminderWatcher();
 }
@@ -287,7 +338,7 @@ function renderToday(){
 const ds=selectedDashboardDate||latest()?.date||todayLocalISO(),d=GOOGLE?.days?.[ds]||null;
 document.getElementById('todayDate').textContent=fmtDate(ds);
 if(!d){
- document.getElementById('homeSleepScore').textContent='—';
+ document.getElementById('homeSleepScore').textContent=d?.readinessScore??d?.readiness??'—';
  document.getElementById('homeSleepSub').textContent='Нет данных за этот день';
  document.getElementById('homeSleepEff').textContent='—';
  document.getElementById('homeSteps').textContent='—';
@@ -296,14 +347,15 @@ if(!d){
  document.getElementById('homeNutritionSub').textContent='Нет данных за выбранный день';
  document.getElementById('homeJournalCount').textContent=journalCountToday();
  document.getElementById('homeJournalSub').textContent='записей';
- document.getElementById('homeScoreCaption').textContent='НЕТ ДАННЫХ ЗА ЭТОТ ДЕНЬ';
- document.getElementById('homeScoreRing').style.setProperty('--score','0deg');
+ const readiness=d?.readinessScore??d?.readiness??null;
+ document.getElementById('homeScoreCaption').textContent=readiness!=null?'ГОТОВНОСТЬ GOOGLE HEALTH':'НЕТ ДАННЫХ ГОТОВНОСТИ';
+ document.getElementById('homeScoreRing').style.setProperty('--score',Math.max(0,Math.min(100,Number(readiness)||0))*3.6+'deg');
  renderSleepDetail();renderActivityDetail();renderNutritionDetail();return;
 }
-const score=d.sleepScore ?? d.sleep?.score ?? null;const sleepMin=d.sleep?.durationMin??null;const eff=d.sleep?.efficiencyPct??d.sleep?.sleepEfficiencyPct??null;
+const score=d.readinessScore??d.readiness??null;const sleepMin=d.sleep?.durationMin??null;const eff=d.sleep?.efficiencyPct??d.sleep?.sleepEfficiencyPct??null;
 document.getElementById('homeSleepScore').textContent=score!=null?Math.round(score):'—';
 document.getElementById('homeSleepSub').textContent=minsText(sleepMin);
-document.getElementById('homeScoreRing').style.setProperty('--score',Math.max(0,Math.min(100,Number(score)||0))*3.6+'deg');document.getElementById('homeScoreCaption').textContent=score!=null?(score>=85?'ВЫСОКИЙ РЕЗУЛЬТАТ':score>=70?'ХОРОШИЙ РЕЗУЛЬТАТ':'ЕСТЬ ЧТО УЛУЧШИТЬ'):'НЕТ ДАННЫХ';document.getElementById('homeSleepEff').textContent=eff!=null?Math.round(eff)+'%':'—';
+document.getElementById('homeScoreRing').style.setProperty('--score',Math.max(0,Math.min(100,Number(score)||0))*3.6+'deg');document.getElementById('homeScoreCaption').textContent=score!=null?(score>=67?'ВЫСОКАЯ ГОТОВНОСТЬ':score>=34?'УМЕРЕННАЯ ГОТОВНОСТЬ':'НИЗКАЯ ГОТОВНОСТЬ'):'НЕТ ДАННЫХ ГОТОВНОСТИ';document.getElementById('homeSleepEff').textContent=eff!=null?Math.round(eff)+'%':'—';
 const steps=d.steps!=null?Number(d.steps):null;document.getElementById('homeSteps').textContent=steps!=null?steps.toLocaleString('ru-RU'):'—';
 const ws=d.workouts||[],levels=d.activityLevel||[],lm={SEDENTARY:0,LIGHTLY_ACTIVE:0,MODERATELY_ACTIVE:0,VERY_ACTIVE:0};levels.forEach(x=>{if(lm[x.type]!=null)lm[x.type]+=Number(x.durationMin||0)});const activeMin=lm.LIGHTLY_ACTIVE+lm.MODERATELY_ACTIVE+lm.VERY_ACTIVE;document.getElementById('homeActivitySub').textContent=`${Math.round(activeMin)} мин · ${ws.length} ${ws.length===1?'тренировка':'тренировок'}`;
 const n=nutritionDay(),tot=n?.totals||{};const kcal=tot.calories!=null?Number(tot.calories):null;document.getElementById('homeCalories').textContent=kcal!=null?Math.round(kcal)+' ккал':'—';document.getElementById('homeNutritionSub').textContent=kcal!=null?'Б '+Math.round(tot.protein||0)+' · Ж '+Math.round(tot.fat||0)+' · У '+Math.round(tot.carbohydrate||0):'FatSecret не загрузился';
@@ -317,7 +369,7 @@ function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 
 
 function initJournalDate(){
- if(!journalSelectedDate)journalSelectedDate=shiftDate(todayLocalISO(),-1);
+ if(!journalSelectedDate)journalSelectedDate=todayLocalISO();
 }
 function changeJournalDay(delta){
  initJournalDate();
@@ -348,7 +400,8 @@ function renderWhoopJournal(){
  const row=c=>{
   const value=Object.prototype.hasOwnProperty.call(journalDraft,c.key)?journalDraft[c.key]:saved[c.key]?.value;
   const answered=value!==undefined&&value!==null;
-  const yes=answered&&Number(value)!==0;
+  const savedRow=saved[c.key];
+  const yes=answered&&(savedRow?.answeredYes===true||(savedRow?.answeredYes==null&&Number(value)!==0));
   const no=answered&&!yes;
   return `<div class="journalQuestion"><div class="journalQuestionText">${c.question}<small>${saved[c.key]?.detail?esc(saved[c.key].detail):c.hint}</small></div><div class="journalAnswer"><button class="${no?'selectedNo':''}" aria-label="Нет" onclick="setJournalAnswer('${c.key}',0)">×</button><button class="${yes?'selectedYes':''}" aria-label="Да" onclick="setJournalAnswer('${c.key}',1)">✓</button></div></div>`;
  };
@@ -356,14 +409,21 @@ function renderWhoopJournal(){
  document.getElementById('journalWellbeing').innerHTML=categories.slice(2).map(row).join('');
 }
 function setJournalAnswer(category,value){
- if(value===0){journalDraft[category]=0;renderWhoopJournal();return}
+ if(value===0){
+  journalDraft[category]=0;
+  const row={date:journalSelectedDate,category,value:0,answeredYes:false,detail:''};
+  const idx=manual.findIndex(x=>x.date===journalSelectedDate&&x.category===category);
+  if(idx>=0)manual[idx]=row;else manual.push(row);
+  localStorage.setItem('healthyManual',JSON.stringify(manual));
+  renderWhoopJournal();renderCalendar();renderAnalytics();return
+ }
  currentType=category;
  openLog(category);
 }
 function saveJournalDay(){
  initJournalDate();
  Object.entries(journalDraft).forEach(([category,value])=>{
-  const row={date:journalSelectedDate,category,value,detail:''};
+  const row={date:journalSelectedDate,category,value,answeredYes:Number(value)!==0,detail:''};
   const idx=manual.findIndex(x=>x.date===journalSelectedDate&&x.category===category);
   if(idx>=0)manual[idx]=row;else manual.push(row);
  });
@@ -373,15 +433,21 @@ function saveJournalDay(){
  if(btn){btn.textContent='СОХРАНЕНО ✓';setTimeout(()=>btn.textContent='СОХРАНИТЬ ЖУРНАЛ',1500)}
 }
 
+function manualIsEvent(x){
+ if(x.category==='none')return false;
+ if(x.answeredYes===true)return true;
+ if(x.answeredYes===false)return false;
+ return Number(x.value)!==0;
+}
 function journalMap(){
 const m={};
 for(const r of WHOOP?.journal||[]){if(!r.answeredYes)continue;(m[r.date]??=[]).push(r.category)}
-for(const x of manual){if(x.category==='none'||Number(x.value)===0)continue;(m[x.date]??=[]).push(x.category)}
+for(const x of manual){if(!manualIsEvent(x))continue;(m[x.date]??=[]).push(x.category)}
 return m
 }
 function allEventsForDate(ds){
 return [...(WHOOP?.journal||[]).filter(r=>r.answeredYes&&r.date===ds).map(r=>({category:r.category,value:null,detail:'Отмечено в WHOOP'})),
-...(manual.filter(x=>x.date===ds&&x.category!=='none'&&Number(x.value)!==0))]
+...(manual.filter(x=>x.date===ds&&manualIsEvent(x)))]
 }
 function rangeDates(view){
 const now=new Date();now.setHours(12,0,0,0);
@@ -474,7 +540,7 @@ return manual.filter(x=>x.category===type&&Number(x.value)!==0&&new Date(x.date+
 function analyticsEvents(type,period){
 const end=new Date();end.setHours(23,59,59,999);const start=new Date(end.getTime()-(period-1)*86400000);
 return [...(WHOOP?.journal||[]).filter(r=>r.answeredYes&&r.category===type&&new Date(r.date+'T12:00:00')>=start).map(r=>({date:r.date,value:null,detail:'Отмечено в WHOOP'})),
-...manual.filter(x=>x.category===type&&Number(x.value)!==0&&new Date(x.date+'T12:00:00')>=start)]
+...manual.filter(x=>x.category===type&&manualIsEvent(x)&&new Date(x.date+'T12:00:00')>=start)]
 }
 function renderAnalytics(){
 const root=document.getElementById('analyticsContent'),period=analyticsDays,arr=days().slice(0,period),h=arr.filter(x=>x.hrv!=null),sleep=arr.filter(x=>x.sleep?.durationMin!=null),types=['migraine','anxiety','alcohol','caffeine'],names={migraine:'Мигрень',anxiety:'Тревожность',alcohol:'Алкоголь',caffeine:'Кофеин после обеда'};
@@ -503,20 +569,20 @@ if(e.category==='anxiety'||e.category==='migraine')return e.value!=null?`инт�
 return e.detail||'Отмечено';
 }
 function markNone(type){
-const date=journalSelectedDate||shiftDate(todayLocalISO(),-1);
+const date=journalSelectedDate||todayLocalISO();
 manual.push({date,category:'none',value:null,detail:`${labels[type]} не было`});
 localStorage.setItem('healthyManual',JSON.stringify(manual));renderCalendar();selectDay(date);renderAnalytics()
 }
 function markNoneFromModal(type){markNone(type);closeLog()}
 function whoopPhys(){return (WHOOP?.physiologicalCycles||[]).filter(x=>x['Cycle start time']).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}function whoopSleep(){return (WHOOP?.sleeps||[]).filter(x=>x['Asleep duration (min)']!=null).sort((a,b)=>new Date(b['Cycle start time'])-new Date(a['Cycle start time']))}
 function renderHistory(){const root=document.getElementById('historyList'),ps=whoopPhys().slice(0,30),ss=whoopSleep();if(!ps.length){root.innerHTML='<div class="empty">WHOOP history пока не загружена.</div>';return}root.innerHTML=ps.map(p=>{const ds=String(p['Cycle start time']).slice(0,10),s=ss.find(x=>String(x['Cycle start time']).slice(0,10)===ds);return `<section class="card historyDay"><div class="date">${fmtDate(ds)}</div><div class="historyGrid"><div class="historyMetric"><div class="k">Recovery</div><div class="v">${p['Recovery score %']!=null?Math.round(p['Recovery score %']):'—'}</div></div><div class="historyMetric"><div class="k">HRV</div><div class="v">${p['Heart rate variability (ms)']!=null?Math.round(p['Heart rate variability (ms)']):'—'}</div></div><div class="historyMetric"><div class="k">RHR</div><div class="v">${p['Resting heart rate (bpm)']!=null?Math.round(p['Resting heart rate (bpm)']):'—'}</div></div><div class="historyMetric"><div class="k">Day Strain</div><div class="v">${p['Day Strain']!=null?Number(p['Day Strain']).toFixed(1):'—'}</div></div></div>${s?`<div class="historySleep">Сон ${minsText(s['Asleep duration (min)'])} · Sleep Performance ${s['Sleep performance %']!=null?Math.round(s['Sleep performance %'])+'%':'—'}</div>`:''}</section>`}).join('')}
-function renderAll(){renderToday();renderCalendar();renderWhoopJournal();if(document.getElementById('journalSummary'))document.getElementById('journalSummary').innerHTML=periodSummary('month');if(document.getElementById('selectedDay')&&document.getElementById('journalCalendarWrap')?.style.display!=='none')selectDay(journalSelectedDate||shiftDate(todayLocalISO(),-1));renderAnalytics();renderHistory()}
+function renderAll(){renderToday();renderCalendar();renderWhoopJournal();if(document.getElementById('journalSummary'))document.getElementById('journalSummary').innerHTML=periodSummary('month');if(document.getElementById('selectedDay')&&document.getElementById('journalCalendarWrap')?.style.display!=='none')selectDay(journalSelectedDate||todayLocalISO());renderAnalytics();renderHistory()}
 function showPage(id,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.bottom button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');document.title='Healthy — '+({today:'Сегодня',journal:'Журнал',analytics:'Аналитика',history:'История',sleepDetail:'Сон',activityDetail:'Активность',nutritionDetail:'Калории'}[id]||'Сегодня')}
 function openDetail(id,title){showPage(id,null);if(id==='nutritionDetail')loadNutritionForDate(selectedDashboardDate||latest()?.date||todayLocalISO()).then(renderNutritionDetail);window.scrollTo({top:0,behavior:'smooth'})}
 function backHome(){const b=document.querySelector('.bottom button');showPage('today',b);window.scrollTo({top:0,behavior:'smooth'})}
-function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date((journalSelectedDate||shiftDate(todayLocalISO(),-1))+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('anxiety')">Не было тревожки</button>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('migraine')">Не было мигрени</button>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
+function openLog(type){currentType=type;currentState={};document.getElementById('modalTitle').textContent=labels[type];const target=new Date((journalSelectedDate||todayLocalISO())+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'});let body='';if(type==='alcohol')body=`<div class="sub">Вчера · ${target}<br>Сколько выпила?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>бокал${n===1?'':'а'}</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Комментарий (необязательно)"></textarea>`;if(type==='caffeine')body=`<div class="sub">Вчера · ${target}<br>Сколько чашек после обеда?</div><div class="choiceGrid">${[0,1,2,3,4].map(n=>`<button class="choice" onclick="pick(${n},this)">${n}<br><small>чашек</small></button>`).join('')}</div><textarea id="logNote" class="note" placeholder="Например: латте в 16:00"></textarea>`;if(type==='anxiety')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>слегка тревожно</small>','1<br><small>телесное ощущение, без паники</small>','2<br><small>сильная атака: паника/слёзы/страх</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><input id="duration" class="duration" type="number" min="0" placeholder="Сколько длилось, минут — необязательно"><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('anxiety')">Не было тревожки</button>`;if(type==='migraine')body=`<div class="sub">Вчера · ${target}<br>Выбери интенсивность</div><div class="choiceGrid">${['0<br><small>таблетка до начала / ранние признаки</small>','1<br><small>суматриптан + ОКИ, пришлось держать голову</small>','2<br><small>сильный приступ: тошнота / светобоязнь</small>'].map((x,i)=>`<button class="choice" onclick="pick(${i},this)">${x}</button>`).join('')}</div><div class="sub">Какие лекарства?</div><div class="meds"><button class="med" onclick="toggleMed('sumatriptan',this)">Суматриптан</button><button class="med" onclick="toggleMed('oki',this)">ОКИ</button><button class="med" onclick="toggleMed('other',this)">Другое</button></div><textarea id="logNote" class="note" placeholder="Комментарий — по желанию"></textarea><button class="noneBtn modalNone" onclick="markNoneFromModal('migraine')">Не было мигрени</button>`;document.getElementById('modalBody').innerHTML=body+'<button class="save" onclick="saveLog()">Сохранить</button>';document.getElementById('modal').classList.add('open')}
 function pick(v,el){currentState.value=v;el.parentNode.querySelectorAll('.choice').forEach(x=>x.classList.remove('sel'));el.classList.add('sel')}function toggleMed(m,el){currentState.meds=currentState.meds||[];currentState.meds=currentState.meds.includes(m)?currentState.meds.filter(x=>x!==m):[...currentState.meds,m];el.classList.toggle('sel')}
-function saveLog(){if(currentState.value==null)return;const date=journalSelectedDate||shiftDate(todayLocalISO(),-1);let detail='';const note=document.getElementById('logNote')?.value?.trim();if(note)detail+=note;const dur=document.getElementById('duration')?.value;if(dur)detail+=(detail?' · ':'')+`длительность ${dur} мин`;if(currentState.meds?.length)detail+=(detail?' · ':'')+`лекарства: ${currentState.meds.join(', ')}`;manual.push({date,category:currentType,value:currentState.value,detail});localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();selectDay(date);renderWhoopJournal();renderAnalytics()}
+function saveLog(){if(currentState.value==null)return;const date=journalSelectedDate||todayLocalISO();let detail='';const note=document.getElementById('logNote')?.value?.trim();if(note)detail+=note;const dur=document.getElementById('duration')?.value;if(dur)detail+=(detail?' · ':'')+`длительность ${dur} мин`;if(currentState.meds?.length)detail+=(detail?' · ':'')+`лекарства: ${currentState.meds.join(', ')}`;const row={date,category:currentType,value:currentState.value,answeredYes:true,detail};const idx=manual.findIndex(x=>x.date===date&&x.category===currentType);if(idx>=0)manual[idx]=row;else manual.push(row);localStorage.setItem('healthyManual',JSON.stringify(manual));closeLog();renderCalendar();selectDay(date);renderWhoopJournal();renderAnalytics()}
 function closeLog(){document.getElementById('modal').classList.remove('open')}
 function addNote(){const date=prompt('Заметка за какую дату? YYYY-MM-DD',new Date().toISOString().slice(0,10));if(!date)return;const text=prompt('Текст заметки');if(!text)return;manual.push({date,category:'note',value:null,detail:text});localStorage.setItem('healthyManual',JSON.stringify(manual));renderCalendar();selectDay(date)}
 
